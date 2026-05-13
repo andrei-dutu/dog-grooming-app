@@ -10,3 +10,6 @@ client/.env
 
 # Build outputs
 client/dist/
+
+# macOS system files
+.DS_Store
