@@ -11,3 +11,161 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  CLIENT
+  GROOMER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  birthday         String?
+  role             Role
+  status           UserStatus       @default(ACTIVE)
+  photoId          String?          @unique
+  photo            Media?           @relation(fields: [photoId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  customer_profile CustomerProfile?
+  groomer_profile  GroomerProfile?
+}
+
+model Media {
+  id            String   @id @default(uuid())
+  alt           String?
+  url           String
+  thumbnail_url String?
+  filename      String
+  mimeType      String
+  filesize      Int
+  width         Int?
+  height        Int?
+  focal_x       Int?
+  focal_y       Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User?
+}
+
+model CustomerProfile {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  first_name String
+  last_name  String
+  phone      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  dogs       Dog[]
+  bookings   Booking[]
+}
+
+model GroomerProfile {
+  id            String                @id @default(uuid())
+  userId        String                @unique
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  display_name  String
+  bio           String?
+  credentials   String?
+  specialties   String?
+  is_public     Boolean               @default(false)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  bookings      Booking[]
+  services      Service[]
+  working_hours GroomerWorkingHours[]
+  time_blocks   GroomerTimeBlock[]
+}
+
+model Dog {
+  id                  String          @id @default(uuid())
+  customer_profile_id String
+  customer_profile    CustomerProfile @relation(fields: [customer_profile_id], references: [id], onDelete: Cascade)
+  name                String
+  breed               String?
+  weight_kg           Float?
+  temperament         String?
+  notes               String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  bookings            Booking[]
+
+  @@unique([id, customer_profile_id])
+}
+
+model Booking {
+  id                  String          @id @default(uuid())
+  customer_profile_id String
+  customer_profile    CustomerProfile @relation(fields: [customer_profile_id], references: [id])
+  dog_id              String
+  dog                 Dog             @relation(fields: [dog_id], references: [id])
+  groomer_profile_id  String
+  groomer_profile     GroomerProfile  @relation(fields: [groomer_profile_id], references: [id])
+  service_id          String
+  service             Service         @relation(fields: [service_id], references: [id])
+  start_datetime      DateTime
+  end_datetime        DateTime
+  status              BookingStatus   @default(PENDING)
+  cancelled           Boolean         @default(false)
+  cancellation_reason String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+}
+
+model Service {
+  id                 String         @id @default(uuid())
+  groomer_profile_id String
+  groomer_profile    GroomerProfile @relation(fields: [groomer_profile_id], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  duration_minutes   Int
+  price              Float
+  is_active          Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  bookings           Booking[]
+
+  @@unique([id, groomer_profile_id])
+}
+
+model GroomerWorkingHours {
+  id                 String         @id @default(uuid())
+  groomer_profile_id String
+  groomer_profile    GroomerProfile @relation(fields: [groomer_profile_id], references: [id], onDelete: Cascade)
+  day_of_week        Int
+  start_time         String
+  end_time           String
+  is_active          Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@unique([groomer_profile_id, day_of_week, start_time, end_time])
+}
+
+model GroomerTimeBlock {
+  id                 String         @id @default(uuid())
+  groomer_profile_id String
+  groomer_profile    GroomerProfile @relation(fields: [groomer_profile_id], references: [id], onDelete: Cascade)
+  start_datetime     DateTime
+  end_datetime       DateTime
+  reason             String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
