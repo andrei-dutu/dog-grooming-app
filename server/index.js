@@ -1,13 +1,28 @@
-const express = require('express')
-const cors = require('cors')
+import "dotenv/config";
+import cors from "cors";
+import express from "express";
+import apiRoutes from "./src/routes/index.js";
+import { errorHandler } from "./src/middleware/errorHandler.js";
+import { pool } from "./src/db/prisma.js";
 
-const app = express()
+const app = express();
+const port = process.env.PORT || 3001;
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
-const PORT = process.env.PORT || 3000
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+app.use("/api", apiRoutes);
+app.use(errorHandler);
+
+app.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
+});
+
+process.on("SIGINT", async () => {
+  await pool.end();
+  process.exit(0);
+});
