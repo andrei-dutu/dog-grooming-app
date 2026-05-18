@@ -3,21 +3,27 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "dotenv -e .env.local -- node index.js",
-    "start": "node index.js",
+    "dev": "dotenv -e .env.local -- tsx watch index.js",
+    "start": "tsx index.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
     "db:push:local": "dotenv -e .env.local -- prisma db push",
     "db:push:prod": "dotenv -e .env -- prisma db push",
-    "test": "jest"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.20.0"
   },
   "devDependencies": {
@@ -26,7 +32,6 @@
     "dotenv-cli": "^11.0.0",
     "jest": "^30.4.2",
     "prisma": "^7.8.0",
-    "supertest": "^7.2.2",
-    "ts-jest": "^29.4.9"
+    "tsx": "^4.22.2"
   }
 }
