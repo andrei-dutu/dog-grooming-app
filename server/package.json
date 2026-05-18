@@ -5,11 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "dotenv -e .env.local -- tsx watch index.js",
+    "dev": "dotenv -e .env -- tsx watch index.js",
     "start": "tsx index.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:push:local": "dotenv -e .env.local -- prisma db push",
+    "db:push:local": "dotenv -e .env -- prisma db push",
     "db:push:prod": "dotenv -e .env -- prisma db push",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
