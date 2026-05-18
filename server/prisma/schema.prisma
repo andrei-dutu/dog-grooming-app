@@ -169,3 +169,31 @@ model GroomerTimeBlock {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 }
+
+model SalonInfo{
+  id String @id @default(uuid())
+  name String
+  description String
+  about_story String
+  location_address String
+  location_map_url String
+  contact_email String
+  contact_phone String
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  salon_opening_hours SalonOpeningHours?
+}
+
+model SalonOpeningHours {
+  id            String    @id @default(uuid())
+  salon_info_id String @unique
+  salon_info    SalonInfo @relation(fields: [salon_info_id], references: [id])
+  day_of_week   Int
+  is_closed     Boolean
+  open_time     String?
+  close_time    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([salon_info_id, day_of_week])
+}
