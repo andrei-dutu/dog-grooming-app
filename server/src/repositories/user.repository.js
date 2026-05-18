@@ -15,3 +15,9 @@ export const userRepository = createRepository({
   beforeCreate: hashPasswordIfPresent,
   beforeUpdate: hashPasswordIfPresent,
 });
+
+userRepository.findByEmail = async (email) => {
+  const row = await prisma.user.findUnique({ where: { email } });
+  if (!row) return null;
+  return User.fromPrisma(row);
+};

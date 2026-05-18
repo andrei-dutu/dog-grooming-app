@@ -12,6 +12,8 @@ import {
   salonInfoRepository,
   salonOpeningHoursRepository,
 } from "../repositories/index.js";
+import authRoutes from "./auth.routes.js";
+
 
 const router = Router();
 
@@ -28,5 +30,6 @@ router.use("/bookings", createCrudRouter(bookingRepository));
 router.use("/services", createCrudRouter(serviceRepository));
 router.use("/salon-info", createCrudRouter(salonInfoRepository));
 router.use("/salon-opening-hours", createCrudRouter(salonOpeningHoursRepository));
+router.use("/auth", authRoutes);
 
 export default router;
