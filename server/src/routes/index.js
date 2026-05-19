@@ -4,6 +4,14 @@ import { createCrudRouter } from "./createCrudRouter.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { authorize } from "../middleware/authorize.js";
 
+import dogRoutes from "./dog.routes.js";
+import bookingRoutes from "./booking.routes.js";
+import serviceRoutes from "./service.routes.js";
+import groomerWorkingHoursRoutes from "./groomerWorkingHours.routes.js";
+import groomerTimeBlockRoutes from "./groomerTimeBlock.routes.js";
+import groomerProfileRoutes from "./groomerProfile.routes.js";
+import customerProfileRoutes from "./customerProfile.routes.js";
+
 import {
   userRepository,
   customerProfileRepository,
@@ -22,44 +30,19 @@ import authRoutes from "./auth.routes.js";
 const router = Router();
 router.use("/users", authenticate, authorize("ADMIN"), createCrudRouter(userRepository));
 
-router.use(
-  "/customer-profiles",
-  authenticate,
-  authorize("CLIENT", "ADMIN"),
-  createCrudRouter(customerProfileRepository),
-);
+router.use("/customer-profiles", customerProfileRoutes);
 
-router.use("/groomer-profiles", createCrudRouter(groomerProfileRepository));
+router.use("/groomer-profiles", groomerProfileRoutes);
 
-router.use(
-  "/groomer-working-hours",
-  authenticate,
-  authorize("GROOMER", "ADMIN"),
-  createCrudRouter(groomerWorkingHoursRepository),
-);
+router.use("/groomer-working-hours", groomerWorkingHoursRoutes);
 
-router.use(
-  "/groomer-time-blocks",
-  authenticate,
-  authorize("GROOMER", "ADMIN"),
-  createCrudRouter(groomerTimeBlockRepository),
-);
+router.use("/groomer-time-blocks", groomerTimeBlockRoutes);
 
-router.use(
-  "/dogs",
-  authenticate,
-  authorize("CLIENT", "ADMIN"),
-  createCrudRouter(dogRepository),
-);
+router.use("/dogs", dogRoutes);
 
-router.use(
-  "/bookings",
-  authenticate,
-  authorize("CLIENT", "GROOMER", "ADMIN"),
-  createCrudRouter(bookingRepository),
-);
+router.use("/bookings", bookingRoutes);
 
-router.use("/services", createCrudRouter(serviceRepository));
+router.use("/services", serviceRoutes);
 
 router.use("/salon-info", createCrudRouter(salonInfoRepository));
 
