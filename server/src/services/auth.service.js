@@ -3,22 +3,72 @@ import { userRepository } from "../repositories/index.js";
 import jwt from "jsonwebtoken"
 
 export const authService = {
-    async register({ email, password, role, birthday }) {
-        const existing = await userRepository.findByEmail(email);
-        if (existing) {
-          throw new Error("Email already in use");
-        }
-      
-        const user = await userRepository.create({
-          email,
-          password,
-          role,
-          birthday,
-          status: "ACTIVE",
-        });
-      
-        return user;
-      },
+  async register({ email, password, birthday, firstName, lastName, phone }) {
+    const existing = await userRepository.findByEmail(email);
+    if (existing) {
+      throw new Error("Email already in use");
+    }
+  
+    const user = await userRepository.create({
+      email,
+      password,
+      role: "CLIENT",
+      birthday,
+      status: "ACTIVE",
+    });
+  
+    await customerProfileRepository.create({
+      userId: user.id,
+      first_name: firstName,
+      last_name: lastName,
+      phone: phone || null,
+    });
+  
+    return user;
+  },
+
+  async groomerRegister({ token, password, displayName, bio, credentials, specialties }) {
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      throw new Error("Invalid or expired invitation token");
+    }
+
+    const { email } = decoded;
+    
+    const existing = await userRepository.findByEmail(email);
+    if (existing) {
+      throw new Error("This email is already registered");
+    }
+  
+    const user = await userRepository.create({
+      email,
+      password,
+      role: "GROOMER",
+      status: "ACTIVE",
+    });
+  
+    await groomerProfileRepository.create({
+      userId: user.id,
+      display_name: displayName,
+      bio: bio || null,
+      credentials: credentials || null,
+      specialties: specialties || null,
+      is_public: false,
+    });
+  
+    return user;
+  },
+
+  generateGroomerInvitationToken(email) {
+    const token = jwt.sign(
+      { email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    return token;
+  },
 
   async login({ email, password }) {
     const user = await userRepository.findByEmail(email);
