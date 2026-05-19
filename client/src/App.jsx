@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './app/pages/HomePage';
+import {AboutPage} from "@/app/pages/AboutPage.tsx";
 
 // Placeholder for pages not yet built
 function ComingSoon({ page }) {
@@ -38,7 +39,7 @@ function App() {
           <Route path="/dashboard" element={<ComingSoon page="Customer Dashboard" />} />
           <Route path="/groomer-dashboard" element={<ComingSoon page="Groomer Dashboard" />} />
           <Route path="/admin" element={<ComingSoon page="Admin Panel" />} />
-          <Route path="/about" element={<ComingSoon page="About" />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ComingSoon page="Contact" />} />
           <Route path="/gallery" element={<ComingSoon page="Gallery" />} />
           <Route path="/settings" element={<ComingSoon page="Settings" />} />
