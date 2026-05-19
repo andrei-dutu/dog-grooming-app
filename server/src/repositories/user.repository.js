@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { normalizeEmail } from "../utils/emailValidation.js";
 import { prisma } from "../db/prisma.js";
 import { User } from "../entities/User.js";
 import { createRepository } from "./createRepository.js";
@@ -17,7 +18,9 @@ export const userRepository = createRepository({
 });
 
 userRepository.findByEmail = async (email) => {
-  const row = await prisma.user.findUnique({ where: { email } });
+  const normalized = normalizeEmail(email);
+  if (!normalized) return null;
+  const row = await prisma.user.findUnique({ where: { email: normalized } });
   if (!row) return null;
   return User.fromPrisma(row);
 };

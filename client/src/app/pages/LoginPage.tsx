@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ImageWithFallback';
-import { isValidEmail } from '../lib/validation';
+import { isValidEmail, normalizeEmail } from '../lib/validation';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ export function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: normalizeEmail(email), password }),
       });
 
       const data = await res.json();

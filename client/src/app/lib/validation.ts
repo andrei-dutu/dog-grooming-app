@@ -1,8 +1,12 @@
-/** Matches server emailValidation.js (auth.service.js). */
-export function isValidEmail(email: string): boolean {
-  if (!email) return false;
+/** Matches server emailValidation.js */
+export function normalizeEmail(email: string): string {
+  if (!email) return '';
+  return email.trim().toLowerCase();
+}
 
-  const normalized = email.trim();
+export function isValidEmail(email: string): boolean {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return false;
   if (normalized.length === 0 || normalized.length > 254) return false;
 
   const atIndex = normalized.indexOf('@');

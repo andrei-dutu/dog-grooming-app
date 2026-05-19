@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ImageWithFallback';
-import { isValidEmail } from '../lib/validation';
+import { isValidEmail, normalizeEmail } from '../lib/validation';
 
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -55,7 +55,7 @@ export function SignUpPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              email: formData.email,
+              email: normalizeEmail(formData.email),
               password: formData.password,
               firstName: formData.firstName,
               lastName: formData.lastName,

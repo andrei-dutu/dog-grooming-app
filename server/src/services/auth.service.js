@@ -1,11 +1,12 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
-import { isValidEmail } from "../utils/emailValidation.js";
+import { isValidEmail, normalizeEmail } from "../utils/emailValidation.js";
 import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
 
 export const authService = {
-  async register({ email, password, birthday, firstName, lastName, phone }) {
+  async register({ email: rawEmail, password, birthday, firstName, lastName, phone }) {
+    const email = normalizeEmail(rawEmail);
 
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
@@ -42,7 +43,7 @@ export const authService = {
       throw new HttpError(401, "Invalid or expired invitation token");
     }
 
-    const { email } = decoded;
+    const email = normalizeEmail(decoded.email);
 
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email in invitation token");
@@ -72,7 +73,8 @@ export const authService = {
     return user;
   },
 
-  generateGroomerInvitationToken(email) {
+  generateGroomerInvitationToken(rawEmail) {
+    const email = normalizeEmail(rawEmail);
 
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
@@ -85,7 +87,8 @@ export const authService = {
     );
 },
 
-  async login({ email, password }) {
+  async login({ email: rawEmail, password }) {
+    const email = normalizeEmail(rawEmail);
 
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");

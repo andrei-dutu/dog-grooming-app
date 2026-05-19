@@ -1,11 +1,18 @@
 /**
+ * Trim and lowercase for storage and lookup (email addresses are case-insensitive).
+ */
+export function normalizeEmail(email) {
+  if (!email || typeof email !== "string") return "";
+  return email.trim().toLowerCase();
+}
+
+/**
  * Practical email validation (not full RFC 5322).
  * Rejects consecutive dots, leading/trailing dots, missing TLD, etc.
  */
 export function isValidEmail(email) {
-  if (!email || typeof email !== "string") return false;
-
-  const normalized = email.trim();
+  const normalized = normalizeEmail(email);
+  if (!normalized) return false;
   if (normalized.length === 0 || normalized.length > 254) return false;
 
   const atIndex = normalized.indexOf("@");
