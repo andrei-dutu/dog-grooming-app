@@ -63,18 +63,25 @@ export const authService = {
   },
 
   generateGroomerInvitationToken(email) {
-    const token = jwt.sign(
+    return jwt.sign(
       { email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    return token;
-  },
+},
 
   async login({ email, password }) {
     const user = await userRepository.findByEmail(email);
     if (!user) {
       throw new HttpError(401, "Invalid credentials");
+    }
+  
+    if (user.status === "BANNED") {
+      throw new HttpError(403, "This account has been banned");
+    }
+
+    if (user.status === "INACTIVE") {
+      throw new HttpError(403, "This account is inactive");
     }
   
     const isValid = await bcrypt.compare(password, user.password);

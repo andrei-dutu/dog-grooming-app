@@ -12,18 +12,22 @@ export const authController = {
   },
 
   async inviteGroomer(req, res) {
-    const { email, adminId } = req.body;
-    
-    // TODO: Verifică că adminId este ADMIN (middleware de auth)
-    
-    const token = authService.generateGroomerInvitationToken(email);
-    const inviteLink = `${process.env.FRONTEND_URL}/groomer-signup?token=${token}`;
-    
-    // TODO: Trimite email cu link-ul
-    
-    res.json({ 
-      message: "Invitation sent",
-      inviteLink // Pentru testing, în prod șterge asta
+    const { email } = req.body;
+
+    if (!email || !email.includes("@")) {
+      throw new HttpError(400, "Valid email is required");
+    }
+
+    const invitationToken = authService.generateGroomerInvitationToken(email);
+    const inviteLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/groomer-signup?token=${invitationToken}`;
+
+    // TODO: Trimite email (implementa serviciu email)
+    console.log(`Invitation for ${email}: ${inviteLink}`);
+
+    res.status(200).json({
+      message: "Invitation generated successfully",
+      email,
+      inviteLink, // Șterge în producție
     });
   },
   
