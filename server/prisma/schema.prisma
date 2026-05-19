@@ -52,9 +52,9 @@ model Media {
   alt           String?
   url           String
   thumbnail_url String?
-  filename      String
+  filename      String?
   mimeType      String
-  filesize      Int
+  filesize      Int?
   width         Int?
   height        Int?
   focal_x       Int?
