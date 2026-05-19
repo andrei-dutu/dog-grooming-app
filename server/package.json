@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push:local": "dotenv -e .env.local -- prisma db push",
     "db:push:prod": "dotenv -e .env -- prisma db push",
+    "db:seed:salon": "dotenv -e .env.local -- tsx prisma/seed-salon.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
