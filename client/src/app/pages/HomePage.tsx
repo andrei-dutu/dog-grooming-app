@@ -10,20 +10,22 @@ import { ImageWithFallback } from '../components/ImageWithFallback';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const [groomers, setGroomers] = useState([]);
+  const [groomers, setGroomers] = useState<any[]>([]);
   const [loadingGroomers, setLoadingGroomers] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/groomer-profiles')
-        .then(res => res.json())
-        .then(data => {
-          setGroomers(data.slice(0, 3));
-          setLoadingGroomers(false);
-        })
-        .catch(err => {
-          console.error('Failed to fetch groomers:', err);
-          setLoadingGroomers(false);
-        });
+    // Fetch groomer profiles — server now includes the related `user` and user's `photo`.
+    fetch('http://localhost:3001/api/groomer-profiles')
+      .then((res) => res.json())
+      .then((data) => {
+        // take first 3 for the homepage carousel
+        setGroomers(data.slice(0, 3));
+        setLoadingGroomers(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch groomers:', err);
+        setLoadingGroomers(false);
+      });
   }, []);
 
   return (
@@ -169,26 +171,33 @@ export function HomePage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {groomers.map((groomer: any) => (
+                  {groomers.map((groomer: any) => {
+                    // try to read the avatar from the included user.photo.url (prisma Media.url)
+                    const avatarUrl =
+                      groomer.user?.photo?.url || groomer.avatar_url || "https://via.placeholder.com/150";
+                    const name = groomer.display_name || groomer.user?.email || "Groomer";
+
+                    return (
                       <Card key={groomer.id} className="p-6 text-center">
                         <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white shadow-lg">
                           <ImageWithFallback
-                              src={groomer.avatar_url}
-                              alt={groomer.first_name}
-                              className="w-full h-full object-cover"
+                            src={avatarUrl}
+                            alt={name}
+                            className="w-full h-full object-cover"
                           />
                         </div>
-                        <h3 className="font-extrabold mb-1">{groomer.first_name} {groomer.last_name}</h3>
-                        <Badge variant="primary" className="text-xs mb-3">{groomer.specialty}</Badge>
-                        <div className="flex justify-center items-center gap-1 mb-4">
-                          <Star size={16} fill="var(--color-warning)" stroke="var(--color-warning)" />
-                          <span className="font-bold">{groomer.rating}</span>
-                        </div>
+                        <h3 className="font-extrabold mb-1">{name}</h3>
+                        <Badge variant="primary" className="text-xs mb-3">{groomer.specialties}</Badge>
+                        {/*<div className="flex justify-center items-center gap-1 mb-4">*/}
+                        {/*  <Star size={16} fill="var(--color-warning)" stroke="var(--color-warning)" />*/}
+                        {/*  <span className="font-bold">{groomer.rating}</span>*/}
+                        {/*</div>*/}
                         <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/groomers')}>
                           View Profile
                         </Button>
                       </Card>
-                  ))}
+                    );
+                  })}
                 </div>
             )}
           </div>
