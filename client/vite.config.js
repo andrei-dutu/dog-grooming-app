@@ -13,6 +13,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-
   assetsInclude: ['**/*.svg', '**/*.csv'],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3001'
+    }
+  }
 })

@@ -1,5 +1,4 @@
 import bcrypt from "bcryptjs";
-import { userRepository } from "../repositories/index.js";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
 import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
