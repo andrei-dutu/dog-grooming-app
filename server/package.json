@@ -11,7 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push:local": "dotenv -e .env.local -- prisma db push",
     "db:push:prod": "dotenv -e .env -- prisma db push",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns=index.test.js"
   },
   "keywords": [],
   "author": "",
