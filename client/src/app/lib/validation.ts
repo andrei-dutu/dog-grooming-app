@@ -33,3 +33,29 @@ export function isValidEmail(email: string): boolean {
 
   return true;
 }
+
+const PHONE_PATTERN = /^[\d+\s().-]+$/;
+
+export function sanitizePhoneInput(value: string): string {
+  return value.replace(/[^\d+\s().-]/g, '');
+}
+
+/** Optional field: empty is valid; otherwise requires 10–15 digits. */
+export function isValidPhone(phone: string): boolean {
+  if (!phone.trim()) return true;
+  if (!PHONE_PATTERN.test(phone.trim())) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 15;
+}
+
+const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
+
+export function sanitizeNameInput(value: string): string {
+  return value.replace(/[^\p{L}\s'-]/gu, '');
+}
+
+export function isValidName(name: string): boolean {
+  const trimmed = name.trim();
+  if (trimmed.length < 1 || trimmed.length > 50) return false;
+  return NAME_PATTERN.test(trimmed);
+}

@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
 import { isValidEmail, normalizeEmail } from "../utils/emailValidation.js";
+import { isValidPhone, normalizePhone } from "../utils/phoneValidation.js";
+import { isValidName, normalizeName } from "../utils/nameValidation.js";
 import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
 
 export const authService = {
@@ -11,6 +13,19 @@ export const authService = {
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
+
+    if (!isValidPhone(phone)) {
+      throw new HttpError(400, "Invalid phone number");
+    }
+
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!isValidName(firstName) || !isValidName(lastName)) {
+      throw new HttpError(400, "Names can only contain letters");
+    }
+
+    const normalizedFirstName = normalizeName(firstName);
+    const normalizedLastName = normalizeName(lastName);
 
     const existing = await userRepository.findByEmail(email);
     if (existing) {
@@ -27,9 +42,9 @@ export const authService = {
   
     await customerProfileRepository.create({
       userId: user.id,
-      first_name: firstName,
-      last_name: lastName,
-      phone: phone || null,
+      first_name: normalizedFirstName,
+      last_name: normalizedLastName,
+      phone: normalizedPhone,
     });
   
     return user;

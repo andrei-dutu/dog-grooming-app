@@ -42,6 +42,19 @@ router.get(
   }),
 );
 
+router.get(
+  "/:id/services",
+  asyncHandler(async (req, res) => {
+    const services = await prisma.service.findMany({
+      where: {
+        groomer_profile_id: req.params.id,
+        is_active: true,
+      },
+    });
+    res.json(services);
+  }),
+);
+
 /**
  * PROTECTED - own profile/admin management
  */
