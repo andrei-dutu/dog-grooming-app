@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs";
 import { userRepository } from "../repositories/index.js";
 import jwt from "jsonwebtoken"
+import { HttpError } from "../utils/httpError.js";
 
 export const authService = {
   async register({ email, password, birthday, firstName, lastName, phone }) {
     const existing = await userRepository.findByEmail(email);
     if (existing) {
-      throw new Error("Email already in use");
+      throw new HttpError(409, "Email already in use");
     }
   
     const user = await userRepository.create({
@@ -73,12 +74,12 @@ export const authService = {
   async login({ email, password }) {
     const user = await userRepository.findByEmail(email);
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new HttpError(401, "Invalid credentials");
     }
   
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      throw new Error("Invalid credentials");
+      throw new HttpError(401, "Invalid credentials");
     }
   
     const token = jwt.sign(
