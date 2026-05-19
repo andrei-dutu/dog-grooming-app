@@ -1,14 +1,13 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
+import { isValidEmail } from "../utils/emailValidation.js";
 import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const authService = {
   async register({ email, password, birthday, firstName, lastName, phone }) {
 
-    if (!email || !EMAIL_REGEX.test(email)) {
+    if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
 
@@ -45,7 +44,7 @@ export const authService = {
 
     const { email } = decoded;
 
-    if (!email || !EMAIL_REGEX.test(email)) {
+    if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email in invitation token");
     }
     
@@ -75,7 +74,7 @@ export const authService = {
 
   generateGroomerInvitationToken(email) {
 
-    if (!email || !EMAIL_REGEX.test(email)) {
+    if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
 
@@ -88,7 +87,7 @@ export const authService = {
 
   async login({ email, password }) {
 
-    if (!email || !EMAIL_REGEX.test(email)) {
+    if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
 
