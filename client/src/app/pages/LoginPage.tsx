@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ImageWithFallback';
+import { isValidEmail } from '../lib/validation';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -10,11 +11,23 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setEmailError('');
+
+    if (!email.trim()) {
+      setEmailError('This field is required');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setEmailError('Invalid email format');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -97,13 +110,19 @@ export function LoginPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
                   className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
-                    error ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
+                    emailError || error ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
                   } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent`}
                   placeholder="your.email@example.com"
                 />
               </div>
+              {emailError && (
+                <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>{emailError}</p>
+              )}
             </div>
 
             {/* Password Field */}

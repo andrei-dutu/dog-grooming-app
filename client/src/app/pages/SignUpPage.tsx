@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ImageWithFallback';
+import { isValidEmail } from '../lib/validation';
 
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export function SignUpPage() {
     if (!formData.firstName) newErrors.firstName = 'This field is required';
     if (!formData.lastName) newErrors.lastName = 'This field is required';
     if (!formData.email) newErrors.email = 'This field is required';
+    else if (!isValidEmail(formData.email)) newErrors.email = 'Invalid email format';
     if (!formData.password) newErrors.password = 'This field is required';
     if (!formData.confirmPassword) newErrors.confirmPassword = 'This field is required';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords don't match";
@@ -194,7 +196,10 @@ export function SignUpPage() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+                  }}
                   className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
                     errors.email ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
                   } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent`}
