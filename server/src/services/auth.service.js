@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { userRepository } from "../repositories/index.js";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
+import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
 
 export const authService = {
   async register({ email, password, birthday, firstName, lastName, phone }) {
@@ -33,14 +34,14 @@ export const authService = {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      throw new Error("Invalid or expired invitation token");
+      throw new HttpError(401, "Invalid or expired invitation token");
     }
 
     const { email } = decoded;
     
     const existing = await userRepository.findByEmail(email);
     if (existing) {
-      throw new Error("This email is already registered");
+      throw new HttpError(409, "This email is already registered");
     }
   
     const user = await userRepository.create({

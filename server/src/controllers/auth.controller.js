@@ -1,4 +1,5 @@
 import { authService } from "../services/auth.service.js";
+import { HttpError } from "../utils/httpError.js";
 
 export const authController = {
   async register(req, res) {
@@ -19,7 +20,7 @@ export const authController = {
     }
 
     const invitationToken = authService.generateGroomerInvitationToken(email);
-    const inviteLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/groomer-signup?token=${invitationToken}`;
+    const inviteLink = `${process.env.FRONTEND_URL}/groomer-signup?token=${invitationToken}`;
 
     // TODO: Trimite email (implementa serviciu email)
     console.log(`Invitation for ${email}: ${inviteLink}`);
