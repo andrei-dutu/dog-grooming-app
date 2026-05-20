@@ -111,8 +111,8 @@ export function SignUpPage() {
           <p className="mb-8" style={{ color: 'var(--color-text-secondary)' }}>
             Check your email to confirm your account
           </p>
-          <Button variant="primary" size="lg" onClick={() => navigate('/dashboard/customer')}>
-            Go to Dashboard
+          <Button variant="primary" size="lg" onClick={() => navigate('/login')}>
+            Sign In
           </Button>
         </div>
       </div>
