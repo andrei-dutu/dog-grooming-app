@@ -84,7 +84,6 @@ export default function App() {
                     <Route path="/groomers/:id" element={<GroomerPublicProfile />} />
 
                     <Route path="/services" element={<ComingSoon page="Services" />} />
-                    <Route path="/reviews" element={<ComingSoon page="Reviews" />} />
                     <Route path="/contact" element={<ComingSoon page="Contact" />} />
 
                     {/* ── Customer Dashboard ── */}

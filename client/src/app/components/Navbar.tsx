@@ -19,8 +19,6 @@ export function Navbar() {
           <Link to="/groomers" className="hover:text-[var(--color-primary)] transition-colors">Our Groomers</Link>
           <Link to="/gallery" className="hover:text-[var(--color-primary)] transition-colors">Gallery</Link>
           <Link to="/about" className="hover:text-[var(--color-primary)] transition-colors">About</Link>
-          <Link to="/reviews" className="hover:text-[var(--color-primary)] transition-colors">Reviews</Link>
-          <Link to="/contact" className="hover:text-[var(--color-primary)] transition-colors">Contact</Link>
         </div>
 
         <div className="flex items-center gap-3">
