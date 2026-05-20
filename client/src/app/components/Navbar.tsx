@@ -65,9 +65,11 @@ export function Navbar() {
               Log In
             </Button>
           )}
-          <Button variant="primary" size="sm" onClick={() => navigate('/booking')}>
-            Book Now
-          </Button>
+          {isAuthenticated && user?.role === 'CLIENT' && (
+            <Button variant="primary" size="sm" onClick={() => navigate('/booking')}>
+              Book Now
+            </Button>
+          )}
         </div>
       </div>
     </nav>
