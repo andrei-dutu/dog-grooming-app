@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import {
     Calendar, Clock, Users, Settings, LogOut, Phone,
-    AlertCircle, Scissors, Home, Plus, Pencil, Trash2, X
+    AlertCircle, Scissors, Home, Plus, Pencil, Trash2, Eye, EyeOff, X, Check
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -90,7 +90,10 @@ const temperamentVariant: Record<string, 'success' | 'accent' | 'warning' | 'err
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function AppointmentCard({ apt, onCancel }: { apt: Booking; onCancel: () => void }) {
-    const isPast = new Date(apt.start_datetime) < new Date() || apt.cancelled || apt.status === 'CANCELLED';
+    const now = new Date();
+    const isPast = new Date(apt.start_datetime) < now || apt.cancelled || apt.status === 'CANCELLED';
+    const hoursUntil = (new Date(apt.start_datetime).getTime() - now.getTime()) / 3_600_000;
+    const canCancel = !isPast && hoursUntil >= 24;
     const temperaments = apt.dog.temperament?.split(',').map(t => t.trim()) ?? [];
 
     // truncate name and breed for listing
@@ -170,9 +173,14 @@ function AppointmentCard({ apt, onCancel }: { apt: Booking; onCancel: () => void
             {!isPast && (
                 <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex gap-2">
                     <button
-                        onClick={onCancel}
-                        className="text-sm font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-colors"
-                        style={{ color: 'var(--color-error)' }}
+                        onClick={canCancel ? onCancel : undefined}
+                        className="text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+                        style={{
+                            color: canCancel ? 'var(--color-error)' : 'var(--color-text-secondary)',
+                            cursor: canCancel ? 'pointer' : 'not-allowed',
+                            opacity: canCancel ? 1 : 0.5,
+                        }}
+                        title={canCancel ? undefined : 'Cancellations must be made at least 24 hours in advance'}
                     >
                         Cancel Appointment
                     </button>
@@ -276,6 +284,7 @@ function ServiceFormModal({ service, onSave, onClose, saving }: ServiceFormProps
 type Tab = 'today' | 'bookings' | 'services' | 'availability' | 'settings';
 
 export function GroomerDashboard() {
+    const navigate = useNavigate();
     const { token, user, logout } = useAuth();
 
     const [activeTab, setActiveTab] = useState<Tab>('today');
@@ -292,6 +301,7 @@ export function GroomerDashboard() {
     const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
     const [cancelReason, setCancelReason] = useState('');
     const [cancelLoading, setCancelLoading] = useState(false);
+    const [cancelError, setCancelError] = useState('');
 
     const [serviceModal, setServiceModal] = useState<{ open: boolean; service: Partial<Service> | null }>({ open: false, service: null });
     const [serviceSaving, setServiceSaving] = useState(false);
@@ -368,19 +378,23 @@ export function GroomerDashboard() {
     const handleCancelConfirm = async () => {
         if (!cancelTargetId || !token) return;
         setCancelLoading(true);
+        setCancelError('');
         try {
             const res = await fetch(`${API_BASE}/bookings/${cancelTargetId}`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify({ cancelled: true, status: 'CANCELLED', cancellation_reason: cancelReason || undefined }),
             });
-            if (res.ok) {
-                setBookings(prev => prev.map(b => b.id === cancelTargetId ? { ...b, cancelled: true, status: 'CANCELLED' } : b));
+            if (!res.ok) {
+                const err = await res.json();
+                setCancelError(err.error ?? 'Cancellation failed');
+                return;
             }
-        } finally {
-            setCancelLoading(false);
+            setBookings(prev => prev.map(b => b.id === cancelTargetId ? { ...b, cancelled: true, status: 'CANCELLED' } : b));
             setCancelTargetId(null);
             setCancelReason('');
+        } finally {
+            setCancelLoading(false);
         }
     };
 
@@ -498,14 +512,9 @@ export function GroomerDashboard() {
             {/* ── Sidebar ── */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
                 <div className="p-6 border-b border-[var(--color-border)]">
-                    <Link
-                        to="/"
-                        className="text-2xl font-extrabold mb-1 text-left hover:opacity-80 transition-opacity"
-                        style={{ fontFamily: 'var(--font-display)' }}
-                        aria-label="Go to home"
-                    >
+                    <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
                         Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-                    </Link>
+                    </div>
                     <div className="text-xs font-bold mt-1" style={{ color: 'var(--color-text-secondary)' }}>Groomer Portal</div>
                 </div>
 
@@ -634,7 +643,24 @@ export function GroomerDashboard() {
                                                 </td>
                                                 <td className="p-4">
                                                     {!b.cancelled && b.status !== 'CANCELLED' && new Date(b.start_datetime) > now && (
-                                                        <button className="text-sm font-bold" style={{ color: 'var(--color-error)' }} onClick={() => setCancelTargetId(b.id)}>
+                                                        <button
+                                                            className="text-sm font-bold"
+                                                            style={{
+                                                                color: (new Date(b.start_datetime).getTime() - now.getTime()) / 3_600_000 >= 24
+                                                                    ? 'var(--color-error)'
+                                                                    : 'var(--color-text-secondary)',
+                                                                cursor: (new Date(b.start_datetime).getTime() - now.getTime()) / 3_600_000 >= 24
+                                                                    ? 'pointer'
+                                                                    : 'not-allowed',
+                                                                opacity: (new Date(b.start_datetime).getTime() - now.getTime()) / 3_600_000 >= 24 ? 1 : 0.5,
+                                                            }}
+                                                            title={(new Date(b.start_datetime).getTime() - now.getTime()) / 3_600_000 < 24 ? 'Cancellations must be made at least 24 hours in advance' : undefined}
+                                                            onClick={() => {
+                                                                if ((new Date(b.start_datetime).getTime() - now.getTime()) / 3_600_000 >= 24) {
+                                                                    setCancelTargetId(b.id);
+                                                                }
+                                                            }}
+                                                        >
                                                             Cancel
                                                         </button>
                                                     )}
@@ -838,7 +864,7 @@ export function GroomerDashboard() {
             {/* ── Cancel Modal ── */}
             {cancelTargetId && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-                     onClick={() => { setCancelTargetId(null); setCancelReason(''); }}>
+                     onClick={() => { setCancelTargetId(null); setCancelReason(''); setCancelError(''); }}>
                     <Card className="p-8 w-full max-w-md" onClick={e => e.stopPropagation()} style={{ boxShadow: '0 16px 64px rgba(0,0,0,0.14)' }}>
                         <h3 className="font-extrabold mb-4" style={{ fontSize: '20px' }}>Cancel this appointment?</h3>
                         {(() => {
@@ -858,12 +884,17 @@ export function GroomerDashboard() {
                         <textarea
                             value={cancelReason}
                             onChange={e => setCancelReason(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] h-24 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] mb-6"
+                            className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] h-24 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] mb-4"
                             placeholder="Enter cancellation reason…"
                             maxLength={200}
                         />
+                        {cancelError && (
+                            <p className="text-sm font-bold mb-4" style={{ color: 'var(--color-error)' }}>
+                                ⚠️ {cancelError}
+                            </p>
+                        )}
                         <div className="flex gap-3">
-                            <Button variant="ghost" size="md" onClick={() => { setCancelTargetId(null); setCancelReason(''); }} className="flex-1">Go Back</Button>
+                            <Button variant="ghost" size="md" onClick={() => { setCancelTargetId(null); setCancelReason(''); setCancelError(''); }} className="flex-1">Go Back</Button>
                             <Button variant="destructive" size="md" onClick={handleCancelConfirm} disabled={cancelLoading} className="flex-1">
                                 {cancelLoading ? 'Cancelling…' : 'Send Cancellation'}
                             </Button>
@@ -912,6 +943,4 @@ export function GroomerDashboard() {
         </div>
     );
 }
-
-// (truncateText is imported from ui utils)
 

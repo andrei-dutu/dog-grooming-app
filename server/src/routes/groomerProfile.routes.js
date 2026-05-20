@@ -15,6 +15,7 @@ router.get(
     "/public",
     asyncHandler(async (_req, res) => {
         const groomers = await prisma.groomerProfile.findMany({
+            where:{is_public: true},
             include: {
                 user: {
                     include: {

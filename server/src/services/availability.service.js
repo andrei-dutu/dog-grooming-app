@@ -27,6 +27,7 @@ export const availabilityService = {
       filters: {
         groomer_profile_id: groomerProfileId,
         day_of_week: dayOfWeek,
+        is_active: true,
       },
     });
 

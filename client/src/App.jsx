@@ -53,7 +53,8 @@ function ClientRoute({ children }) {
     const { user, loading } = useAuth();
     if (loading) return null;
     if (!user) return <Navigate to="/login" replace />;
-    if (user.role !== 'CLIENT') return <Navigate to="/dashboard/groomer" replace />;
+    if (user.role === 'ADMIN') return <Navigate to="/dashboard/admin" replace />;
+    if (user.role === 'GROOMER') return <Navigate to="/dashboard/groomer" replace />;
     return <>{children}</>;
 }
 
