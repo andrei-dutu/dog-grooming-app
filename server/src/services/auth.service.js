@@ -1,11 +1,17 @@
 import bcrypt from "bcryptjs";
-import { userRepository } from "../repositories/index.js";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
 import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const authService = {
   async register({ email, password, birthday, firstName, lastName, phone }) {
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      throw new HttpError(400, "Invalid email format");
+    }
+
     const existing = await userRepository.findByEmail(email);
     if (existing) {
       throw new HttpError(409, "Email already in use");
@@ -38,6 +44,10 @@ export const authService = {
     }
 
     const { email } = decoded;
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      throw new HttpError(400, "Invalid email in invitation token");
+    }
     
     const existing = await userRepository.findByEmail(email);
     if (existing) {
@@ -64,6 +74,11 @@ export const authService = {
   },
 
   generateGroomerInvitationToken(email) {
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      throw new HttpError(400, "Invalid email format");
+    }
+
     return jwt.sign(
       { email },
       process.env.JWT_SECRET,
@@ -72,6 +87,11 @@ export const authService = {
 },
 
   async login({ email, password }) {
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      throw new HttpError(400, "Invalid email format");
+    }
+
     const user = await userRepository.findByEmail(email);
     if (!user) {
       throw new HttpError(401, "Invalid credentials");

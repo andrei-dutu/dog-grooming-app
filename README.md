@@ -1,10 +1,43 @@
 ## Setup local
 
-1. In terminal  run: `npm install`
+1. In `/client` folder terminal run: `npm install`
 2. Open Docker and run: `docker run --name dog-grooming-db -e POSTGRES_PASSWORD=parola -e POSTGRES_DB=dog_grooming_dev -p 5432:5432 -d postgres`
 3. In the `/server` folder create a file named: `.env.local` and inside put: `DIRECT_URL="postgresql://postgres:parola@localhost:5432/dog_grooming_dev"`
 4. Then run: `npm run db:push:local` for creating the tables in the docker database
 5. For starting the app on localhost run: `npm run dev`
+From now on, if you make changes to the database through prisma and want to push them you have to sync both databases so use: `npm run db:push:local` and `npm run db:push:prod`
+
+
+
+## Frontend Setup (`/client`)
+  
+### Install dependencies
+
+```bash
+cd client
+npm install
+```
+
+### Additional packages required
+
+```bash
+npm install react-router-dom
+npm install lucide-react
+npm install @radix-ui/react-slot
+npm install class-variance-authority
+npm install clsx
+npm install tailwind-merge
+npm install tw-animate-css
+```
+
+### Run the dev server
+
+```bash
+npm run dev
+```
+
+Opens at **http://localhost:5173**
+ 
 6. From now on, if you make changes to the database through prisma and want to push them you have to sync both databases so use: `npm run db:push:local` and `npm run db:push:prod`
 
 ## .env setup

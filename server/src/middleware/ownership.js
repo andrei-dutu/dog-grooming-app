@@ -1,5 +1,5 @@
 import { HttpError } from "../utils/httpError.js";
-import { prisma } from "../db/index.js";
+import { prisma } from "../db/prisma.js";
 
 export async function requireDogOwnership(req, _res, next) {
   if (req.user.role === "ADMIN") return next();
