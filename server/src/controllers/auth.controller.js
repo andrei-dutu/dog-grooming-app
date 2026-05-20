@@ -14,10 +14,10 @@ export const authController = {
   },
 
   async inviteGroomer(req, res) {
-    const user = await authService.createGroomer(req.body);
-    res.status(201).json(user);
+    const result = await authService.inviteGroomer(req.body);
+    res.status(201).json(result);
   },
-  
+
   async login(req, res) {
     const result = await authService.login(req.body);
     res.json(result);

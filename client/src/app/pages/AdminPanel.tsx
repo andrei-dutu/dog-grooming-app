@@ -56,8 +56,6 @@ function formatTime(iso: string) {
 
 type Tab = 'dashboard' | 'groomers' | 'bookings' | 'salon' | 'settings';
 
-const SPECIALTY_OPTIONS = ['Anxious dogs', 'Large breeds', 'Doodles', 'Small breeds', 'Puppies', 'Seniors'];
-
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export function AdminPanel() {
@@ -73,9 +71,7 @@ export function AdminPanel() {
     // invite groomer modal
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteDisplayName, setInviteDisplayName] = useState('');
-    const [inviteBio, setInviteBio] = useState('');
-    const [inviteSpecialties, setInviteSpecialties] = useState<string[]>([]);
+    const [invitePassword, setInvitePassword] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [inviteError, setInviteError] = useState('');
     const [toastMsg, setToastMsg] = useState('');
@@ -118,7 +114,7 @@ export function AdminPanel() {
 
     // ── Create groomer ────────────────────────────────────────────────────────
     const handleInviteGroomer = async () => {
-        if (!inviteEmail) return;
+        if (!inviteEmail || !invitePassword) return;
         setInviteLoading(true);
         setInviteError('');
         try {
@@ -134,17 +130,13 @@ export function AdminPanel() {
             }
             const { token: inviteToken } = await inviteRes.json();
 
-            // Step 2 – register the groomer immediately with the token
+            // Step 2 – register the groomer immediately with the token and admin-set password
             const registerRes = await fetch(`${API_BASE}/auth/groomer/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     token: inviteToken,
-                    // Temporary random password — groomer should reset it on first login
-                    password: Math.random().toString(36).slice(-8) + 'A1!',
-                    displayName: inviteDisplayName || inviteEmail.split('@')[0],
-                    bio: inviteBio || null,
-                    specialties: inviteSpecialties.join(', ') || null,
+                    password: invitePassword,
                 }),
             });
             if (!registerRes.ok) {
@@ -153,7 +145,8 @@ export function AdminPanel() {
             }
 
             setShowInviteModal(false);
-            setInviteEmail(''); setInviteDisplayName(''); setInviteBio(''); setInviteSpecialties([]);
+            setInviteEmail('');
+            setInvitePassword('');
             setToastMsg(`✅ Groomer account created for ${inviteEmail}`);
             setTimeout(() => setToastMsg(''), 4000);
             fetchAll();
@@ -623,49 +616,20 @@ export function AdminPanel() {
                                 />
                             </div>
                             <div>
-                                <label className="block font-bold mb-2">Display Name</label>
+                                <label className="block font-bold mb-2">Password *</label>
                                 <input
-                                    value={inviteDisplayName}
-                                    onChange={e => setInviteDisplayName(e.target.value)}
+                                    type="password"
+                                    value={invitePassword}
+                                    onChange={e => setInvitePassword(e.target.value)}
                                     className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                    placeholder="Sarah Johnson"
+                                    placeholder="Set temporary password"
                                 />
-                            </div>
-                            <div>
-                                <label className="block font-bold mb-2">Bio</label>
-                                <textarea
-                                    value={inviteBio}
-                                    onChange={e => setInviteBio(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-20 resize-none"
-                                    placeholder="Brief bio about the groomer…"
-                                />
-                            </div>
-                            <div>
-                                <label className="block font-bold mb-2">Specialties</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {SPECIALTY_OPTIONS.map(spec => (
-                                        <button
-                                            key={spec}
-                                            type="button"
-                                            onClick={() => setInviteSpecialties(prev =>
-                                                prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
-                                            )}
-                                            className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${
-                                                inviteSpecialties.includes(spec)
-                                                    ? 'bg-[var(--color-primary)] text-white'
-                                                    : 'border border-[var(--color-border)] hover:border-[var(--color-primary)]'
-                                            }`}
-                                        >
-                                            {spec}
-                                        </button>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                         {inviteError && <p className="text-sm font-bold mb-4" style={{ color: 'var(--color-error)' }}>{inviteError}</p>}
                         <div className="flex gap-3">
                             <Button variant="ghost" size="md" onClick={() => setShowInviteModal(false)} className="flex-1">Cancel</Button>
-                            <Button variant="primary" size="md" onClick={handleInviteGroomer} disabled={inviteLoading || !inviteEmail} className="flex-1">
+                            <Button variant="primary" size="md" onClick={handleInviteGroomer} disabled={inviteLoading || !inviteEmail || !invitePassword} className="flex-1">
                                 {inviteLoading ? 'Creating…' : 'Create Groomer'}
                             </Button>
                         </div>

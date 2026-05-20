@@ -207,9 +207,6 @@ export function DogProfilePage() {
                   <option value="Shih Tzu" />
                   <option value="Beagle" />
                 </datalist>
-                <div className="text-right text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                  {form.breed.length} characters
-                </div>
               </div>
 
               {/* Weight */}
