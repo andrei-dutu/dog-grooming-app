@@ -31,7 +31,7 @@ export const authService = {
     if (existing) {
       throw new HttpError(409, "Email already in use");
     }
-  
+
     const user = await userRepository.create({
       email,
       password,
@@ -39,22 +39,53 @@ export const authService = {
       birthday,
       status: "ACTIVE",
     });
-  
+
     await customerProfileRepository.create({
       userId: user.id,
       first_name: normalizedFirstName,
       last_name: normalizedLastName,
       phone: normalizedPhone,
     });
-  
+
     return user;
   },
 
-  async createGroomer({ email: rawEmail, password, displayName, bio, specialties, credentials }) {
+  async inviteGroomer({ email: rawEmail }) {
     const email = normalizeEmail(rawEmail);
 
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
+    }
+
+    const existing = await userRepository.findByEmail(email);
+    if (existing) {
+      throw new HttpError(409, "Email already in use");
+    }
+
+    const token = jwt.sign(
+        { inviteEmail: email },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" }
+    );
+
+    return { token };
+  },
+
+  async groomerRegister({ token, password }) {
+    if (!token || !password) {
+      throw new HttpError(400, "Token and password are required");
+    }
+
+    let email;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      email = decoded.inviteEmail;
+    } catch (err) {
+      throw new HttpError(401, "Invalid or expired invite token");
+    }
+
+    if (!email) {
+      throw new HttpError(400, "Invalid token payload");
     }
 
     const existing = await userRepository.findByEmail(email);
@@ -71,11 +102,11 @@ export const authService = {
 
     await groomerProfileRepository.create({
       userId: user.id,
-      display_name: displayName || email.split("@")[0],
-      bio: bio || null,
-      credentials: credentials || null,
-      specialties: specialties || null,
-      is_public: false,
+      display_name: email.split("@")[0],
+      bio: null,
+      credentials: null,
+      specialties: null,
+      is_public: true,
     });
 
     return user;
@@ -92,7 +123,7 @@ export const authService = {
     if (!user) {
       throw new HttpError(401, "Invalid credentials");
     }
-  
+
     if (user.status === "BANNED") {
       throw new HttpError(403, "This account has been banned");
     }
@@ -100,18 +131,18 @@ export const authService = {
     if (user.status === "INACTIVE") {
       throw new HttpError(403, "This account is inactive");
     }
-  
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       throw new HttpError(401, "Invalid credentials");
     }
-  
+
     const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
     );
-  
+
     return { token, user };
   },
 
