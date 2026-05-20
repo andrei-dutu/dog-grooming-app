@@ -14,7 +14,7 @@ export function Navbar() {
       ? '/dashboard/groomer'
       : '/dashboard/customer';
 
-  const avatarUrl = user?.photo?.url || 'https://via.placeholder.com/150';
+  const avatarUrl = 'https://via.placeholder.com/150';
   const avatarLabel = user?.email || 'Account';
 
   return (
@@ -66,7 +66,7 @@ export function Navbar() {
             </Button>
           )}
           {isAuthenticated && user?.role === 'CLIENT' && (
-            <Button variant="primary" size="sm" onClick={() => navigate('/booking')}>
+            <Button variant="primary" size="sm" onClick={() => navigate('/groomers')}>
               Book Now
             </Button>
           )}
