@@ -2,8 +2,8 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { Scissors, Droplets, PawPrint, Clock, ChevronDown } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 
 type GroomerProfileSummary = {
   display_name?: string | null;
