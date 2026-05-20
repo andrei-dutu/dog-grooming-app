@@ -56,7 +56,7 @@ export function HomePage() {
                 </Button>
               </div>
               <div className="flex flex-wrap gap-4 md:hidden">
-                <Button variant="primary" size="md" onClick={() => navigate('/booking')} className="w-full">
+                <Button variant="primary" size="md" onClick={() => navigate('/groomers')} className="w-full">
                   Book an Appointment
                 </Button>
                 <Button variant="ghost" size="md" onClick={() => navigate('/groomers')} className="w-full">
@@ -136,7 +136,7 @@ export function HomePage() {
                     <span className="font-extrabold" style={{ color: 'var(--color-primary)', fontSize: '24px' }}>
                       From ${service.price}
                     </span>
-                        <button onClick={() => navigate('/booking')} className="font-bold" style={{ color: 'var(--color-primary)' }}>
+                        <button onClick={() => navigate('/groomers')} className="font-bold" style={{ color: 'var(--color-primary)' }}>
                           Book Now →
                         </button>
                       </div>
@@ -236,7 +236,7 @@ export function HomePage() {
             <h2 className="text-white mb-8" style={{ fontFamily: 'var(--font-display)', fontSize: '48px' }}>
               Ready for the Best Groom Ever?
             </h2>
-            <Button size="lg" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-dark)' }} onClick={() => navigate('/booking')}>
+            <Button size="lg" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-dark)' }} onClick={() => navigate('/groomers')}>
               Book Now
             </Button>
           </div>
