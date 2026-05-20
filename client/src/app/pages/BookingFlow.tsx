@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { CheckCircle, Clock, Calendar, Star, Scissors, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Clock, Calendar, Scissors, ArrowLeft } from 'lucide-react';
 import { truncateText } from '../components/ui/utils';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -9,7 +9,6 @@ import { MonthCalendar } from '../components/MonthCalendar';
 import { useAuth } from '../hooks/AuthContext';
 
 const API_BASE = '/api';
-
 
 interface Groomer {
   id: string;
@@ -34,24 +33,8 @@ interface DogRecord {
   weight_kg?: number;
 }
 
-
-
-function generateTimeSlots(): string[] {
-  const slots: string[] = [];
-  for (let h = 9; h <= 17; h++) {
-    for (const m of [0, 30]) {
-      if (h === 17 && m === 30) continue;
-      const hour = h % 12 === 0 ? 12 : h % 12;
-      const ampm = h < 12 ? 'AM' : 'PM';
-      slots.push(`${hour}:${m === 0 ? '00' : '30'} ${ampm}`);
-    }
-  }
-  return slots;
-}
-
 function parseSlot(dateObj: Date, timeStr: string): Date {
   const [time, meridiem] = timeStr.split(' ') as [string, string];
-
   let [hours, minutes] = time.split(':').map(Number) as [number, number];
 
   if (meridiem === 'PM' && hours !== 12) hours += 12;
@@ -69,7 +52,6 @@ function toISO(d: Date) {
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
-
 
 const STEPS = [
   { num: 1, label: 'Service' },
@@ -110,8 +92,6 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────
-
 export function BookingFlow() {
   const navigate = useNavigate();
   const { groomerId } = useParams<{ groomerId: string }>();
@@ -120,6 +100,11 @@ export function BookingFlow() {
   const [currentStep, setCurrentStep] = useState(1);
   const [groomer, setGroomer] = useState<Groomer | null>(null);
   const [dogs, setDogs] = useState<DogRecord[]>([]);
+
+  // Real dynamic slots from backend
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
   const [loadingData, setLoadingData] = useState(true);
   const [fetchError, setFetchError] = useState('');
 
@@ -133,9 +118,10 @@ export function BookingFlow() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
 
-  const timeSlots = generateTimeSlots();
+  const selectedService = groomer?.services.find((s) => s.id === selectedServiceId) ?? null;
+  const selectedDog = dogs.find((d) => d.id === selectedDogId) ?? null;
 
-  // ── Fetch groomer + dogs ───────────────────────────────────────────────
+  // ── Fetch Initial Groomer + Dogs Data ───────────────────────────────────
   useEffect(() => {
     if (!token || !groomerId) return;
 
@@ -149,8 +135,7 @@ export function BookingFlow() {
         ]);
 
         if (!groomerRes.ok) throw new Error('Groomer not found');
-        const groomerData = await groomerRes.json();
-        setGroomer(groomerData);
+        setGroomer(await groomerRes.json());
 
         if (dogsRes.ok) setDogs(await dogsRes.json());
       } catch (err: any) {
@@ -163,8 +148,53 @@ export function BookingFlow() {
     fetchData();
   }, [groomerId, token]);
 
-  const selectedService = groomer?.services.find((s) => s.id === selectedServiceId) ?? null;
-  const selectedDog = dogs.find((d) => d.id === selectedDogId) ?? null;
+  // ── Fetch Dynamic Available Slots From Backend ──────────────────────────
+  useEffect(() => {
+    if (!selectedDate || !selectedServiceId || !token || !groomerId) return;
+
+    const fetchSlots = async () => {
+      setLoadingSlots(true);
+      try {
+        // Force date components directly into numbers to completely eliminate any weird string leakages
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+
+        // This guarantees a clean "YYYY-MM-DD" structure (e.g. "2026-05-21")
+        const strictDateStr = `${year}-${month}-${day}`;
+
+        const res = await fetch(
+            `${API_BASE}/bookings/availability?groomerProfileId=${groomerId}&serviceId=${selectedServiceId}&date=${strictDateStr}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          const slotsData = data.slots ?? [];
+
+          const formattedSlots = slotsData.map((slot: { start_time: string }) => {
+            const [hStr, mStr] = slot.start_time.split(':') as [string, string];
+            let hour = parseInt(hStr, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12;
+            if (hour === 0) hour = 12;
+            return `${hour}:${mStr} ${ampm}`;
+          });
+
+          setAvailableSlots(formattedSlots);
+        } else {
+          setAvailableSlots([]);
+        }
+      } catch (err) {
+        console.error("Error loading slots:", err);
+        setAvailableSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    fetchSlots();
+  }, [selectedDate, selectedServiceId, groomerId, token]);
 
   // ── Confirm booking ────────────────────────────────────────────────────
   const handleConfirmBooking = async () => {
@@ -344,7 +374,6 @@ export function BookingFlow() {
     );
   }
 
-  // ── Booking flow ───────────────────────────────────────────────────────
   const canProceed =
       (currentStep === 1 && !!selectedServiceId) ||
       (currentStep === 2 && !!selectedDate && !!selectedTime) ||
@@ -356,7 +385,6 @@ export function BookingFlow() {
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 py-12">
 
-          {/* Back link */}
           <button
               onClick={() => navigate('/groomers')}
               className="flex items-center gap-2 font-bold mb-8 hover:underline"
@@ -368,7 +396,6 @@ export function BookingFlow() {
 
           <StepIndicator current={currentStep} />
 
-          {/* Groomer card */}
           <Card className="p-4 mb-8 flex items-center gap-4">
             <div
                 className="w-16 h-16 rounded-full flex items-center justify-center font-extrabold text-2xl shrink-0"
@@ -478,21 +505,31 @@ export function BookingFlow() {
                       <label className="block font-bold mb-3">
                         Available times for {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                       </label>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                        {timeSlots.map((time) => (
-                            <button
-                                key={time}
-                                onClick={() => setSelectedTime(time)}
-                                className={`p-3 rounded-full font-bold transition-all ${
-                                    selectedTime === time
-                                        ? 'bg-[var(--color-primary)] text-white'
-                                        : 'bg-white border border-[var(--color-primary)] hover:bg-[var(--color-primary-light)]'
-                                }`}
-                            >
-                              {time}
-                            </button>
-                        ))}
-                      </div>
+                      {loadingSlots ? (
+                          <div className="flex justify-center py-6">
+                            <div className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
+                          </div>
+                      ) : availableSlots.length === 0 ? (
+                          <Card className="p-6 text-center text-gray-500">
+                            No available timeslots found for this day. Try another date!
+                          </Card>
+                      ) : (
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            {availableSlots.map((time) => (
+                                <button
+                                    key={time}
+                                    onClick={() => setSelectedTime(time)}
+                                    className={`p-3 rounded-full font-bold transition-all ${
+                                        selectedTime === time
+                                            ? 'bg-[var(--color-primary)] text-white'
+                                            : 'bg-white border border-[var(--color-primary)] hover:bg-[var(--color-primary-light)]'
+                                    }`}
+                                >
+                                  {time}
+                                </button>
+                            ))}
+                          </div>
+                      )}
                     </div>
                 ) : (
                     <div
@@ -627,7 +664,7 @@ export function BookingFlow() {
 
                     <div className="flex items-center gap-4">
                       <span className="text-2xl">🐾</span>
-                        <div>
+                      <div>
                         <div className="font-bold">{truncateText(selectedDog.name, 21)}</div>
                         <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                           {selectedDog.breed ? truncateText(selectedDog.breed, 18) : ''}

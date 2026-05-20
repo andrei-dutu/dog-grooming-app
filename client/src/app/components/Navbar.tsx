@@ -1,8 +1,21 @@
 import { Link, useNavigate } from 'react-router';
+import { LogOut } from 'lucide-react';
 import { Button } from './ui/button';
+import { ImageWithFallback } from './ImageWithFallback';
+import { useAuth } from '../hooks/AuthContext';
 
 export function Navbar() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const dashboardPath = user?.role === 'ADMIN'
+    ? '/dashboard/admin'
+    : user?.role === 'GROOMER'
+      ? '/dashboard/groomer'
+      : '/dashboard/customer';
+
+  const avatarUrl = 'https://via.placeholder.com/150';
+  const avatarLabel = user?.email || 'Account';
 
   return (
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-[var(--color-border)]">
@@ -22,12 +35,41 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
-            Log In
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => navigate('/booking')}>
-            Book Now
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate(dashboardPath)}
+                className="w-11 h-11 rounded-full overflow-hidden border-2 border-[var(--color-border)] hover:border-[var(--color-primary)] transition-colors"
+                aria-label="Go to dashboard"
+                title={avatarLabel}
+              >
+                <ImageWithFallback
+                  src={avatarUrl}
+                  alt={avatarLabel}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+              <Button variant="ghost" size="sm" onClick={logout}>
+                <span className="hidden sm:inline-flex items-center gap-2">
+                  <LogOut size={16} />
+                  Log Out
+                </span>
+                <span className="sm:hidden inline-flex items-center gap-2">
+                  <LogOut size={16} />
+                </span>
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
+              Log In
+            </Button>
+          )}
+          {isAuthenticated && user?.role === 'CLIENT' && (
+            <Button variant="primary" size="sm" onClick={() => navigate('/groomers')}>
+              Book Now
+            </Button>
+          )}
         </div>
       </div>
     </nav>

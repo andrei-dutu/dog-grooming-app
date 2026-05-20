@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import {
     Calendar, Clock, Users, Settings, LogOut, Phone,
-    AlertCircle, Scissors, Home, Plus, Pencil, Trash2, Eye, EyeOff, X, Check
+    AlertCircle, Scissors, Home, Plus, Pencil, Trash2, X
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -276,7 +276,6 @@ function ServiceFormModal({ service, onSave, onClose, saving }: ServiceFormProps
 type Tab = 'today' | 'bookings' | 'services' | 'availability' | 'settings';
 
 export function GroomerDashboard() {
-    const navigate = useNavigate();
     const { token, user, logout } = useAuth();
 
     const [activeTab, setActiveTab] = useState<Tab>('today');
@@ -499,9 +498,14 @@ export function GroomerDashboard() {
             {/* ── Sidebar ── */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
                 <div className="p-6 border-b border-[var(--color-border)]">
-                    <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
+                    <Link
+                        to="/"
+                        className="text-2xl font-extrabold mb-1 text-left hover:opacity-80 transition-opacity"
+                        style={{ fontFamily: 'var(--font-display)' }}
+                        aria-label="Go to home"
+                    >
                         Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-                    </div>
+                    </Link>
                     <div className="text-xs font-bold mt-1" style={{ color: 'var(--color-text-secondary)' }}>Groomer Portal</div>
                 </div>
 
