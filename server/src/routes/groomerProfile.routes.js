@@ -14,11 +14,18 @@ const router = Router();
 router.get(
   "/",
   asyncHandler(async (_req, res) => {
+    // Include the linked user and their photo so clients can render avatars
     const groomers = await prisma.groomerProfile.findMany({
       where: {
         is_public: true,
       },
       include: {
+        // include the user's public fields and their photo (Media)
+        user: {
+          include: {
+            photo: true,
+          },
+        },
         services: {
           where: {
             is_active: true,
@@ -37,8 +44,20 @@ router.get(
 router.get(
   "/:id",
   asyncHandler(async (req, res) => {
-    const groomer = await groomerProfileRepository.findById(req.params.id);
-    res.json(groomer.toJSON());
+    // Return the single groomer with the related user and user's photo
+    const groomer = await prisma.groomerProfile.findUnique({
+      where: { id: req.params.id },
+      include: {
+        user: { include: { photo: true } },
+        services: true,
+      },
+    });
+
+    if (!groomer) {
+      return res.status(404).json({ error: "Groomer not found" });
+    }
+
+    res.json(groomer);
   }),
 );
 
