@@ -45,6 +45,12 @@ export function SettingsPage({ userType }: SettingsPageProps) {
   useEffect(() => {
     if (!token) return;
 
+    if (userType === 'admin') {
+      setPersonalInfo(prev => ({ ...prev, email: user?.email ?? '' }));
+      setLoadingProfile(false);
+      return;
+    }
+
     const fetchProfile = async () => {
       setLoadingProfile(true);
       try {
@@ -226,9 +232,10 @@ export function SettingsPage({ userType }: SettingsPageProps) {
       <div className="max-w-3xl mx-auto space-y-8">
 
         {/* ── Section 1: Personal Information ── */}
+        {userType !== 'admin' && (
         <div>
           <h2 className="font-extrabold mb-4" style={{ fontSize: '20px' }}>
-            {userType === 'admin' ? 'Admin Account' : userType === 'groomer' ? 'Profile Information' : 'Personal Information'}
+            {userType === 'groomer' ? 'Profile Information' : 'Personal Information'}
           </h2>
           <div className="border-t border-[var(--color-border)] pt-6">
             <div className="space-y-4">
@@ -281,6 +288,7 @@ export function SettingsPage({ userType }: SettingsPageProps) {
             </div>
           </div>
         </div>
+        )}
 
         {/* ── Section 2: Change Password ── */}
         <div>
