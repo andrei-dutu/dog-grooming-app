@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { CheckCircle, Clock, Calendar, Star, Scissors, ArrowLeft } from 'lucide-react';
+import { truncateText } from '../components/ui/utils';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Navbar } from '../components/Navbar';
@@ -545,10 +546,10 @@ export function BookingFlow() {
                                   </div>
                               )}
                             </div>
-                            <div className="font-extrabold">{dog.name}</div>
+                            <div className="font-extrabold">{truncateText(dog.name, 21)}</div>
                             {dog.breed && (
                                 <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                                  {dog.breed}
+                                  {truncateText(dog.breed, 18)}
                                 </div>
                             )}
                             {dog.weight_kg && (
@@ -626,10 +627,10 @@ export function BookingFlow() {
 
                     <div className="flex items-center gap-4">
                       <span className="text-2xl">🐾</span>
-                      <div>
-                        <div className="font-bold">{selectedDog.name}</div>
+                        <div>
+                        <div className="font-bold">{truncateText(selectedDog.name, 21)}</div>
                         <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                          {selectedDog.breed}
+                          {selectedDog.breed ? truncateText(selectedDog.breed, 18) : ''}
                           {selectedDog.weight_kg ? ` · ${selectedDog.weight_kg} kg` : ''}
                         </div>
                       </div>

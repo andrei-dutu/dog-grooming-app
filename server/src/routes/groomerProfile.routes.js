@@ -12,54 +12,52 @@ const router = Router();
  * PUBLIC - groomer discovery/listing
  */
 router.get(
-  "/",
-  asyncHandler(async (_req, res) => {
-    // Include the linked user and their photo so clients can render avatars
-    const groomers = await prisma.groomerProfile.findMany({
-      where: {
-        is_public: true,
-      },
-      include: {
-        // include the user's public fields and their photo (Media)
-        user: {
-          include: {
-            photo: true,
-          },
-        },
-        services: {
-          where: {
-            is_active: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    "/public",
+    asyncHandler(async (_req, res) => {
+        const groomers = await prisma.groomerProfile.findMany({
+            include: {
+                user: {
+                    include: {
+                        photo: true,
+                    },
+                },
+                services: {
+                    where: {
+                        is_active: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
 
-    res.json(groomers);
-  }),
+        res.json(groomers);
+    }),
 );
 
 router.get(
-  "/:id",
-  asyncHandler(async (req, res) => {
-    // Return the single groomer with the related user and user's photo
-    const groomer = await prisma.groomerProfile.findUnique({
-      where: { id: req.params.id },
-      include: {
-        user: { include: { photo: true } },
-        services: true,
-      },
-    });
+    "/:id",
+    asyncHandler(async (req, res) => {
+        const groomer = await prisma.groomerProfile.findUnique({
+            where: { id: req.params.id },
+            include: {
+                user: { include: { photo: true } },
+                services: {
+                    where: {
+                        is_active: true,
+                    },
+                },
+            },
+        });
 
-    if (!groomer) {
-      return res.status(404).json({ error: "Groomer not found" });
-    }
+        if (!groomer) {
+            return res.status(404).json({ error: "Groomer not found" });
+        }
 
-    res.json(groomer);
-  }),
-);
+        res.json(groomer);
+    }),
+)
 
 router.get(
   "/:id/services",
@@ -79,6 +77,67 @@ router.get(
  */
 router.use(authenticate);
 router.use(authorize("GROOMER", "ADMIN"));
+
+router.get(
+    "/",
+    asyncHandler(async (req, res) => {
+        if (req.user.role === "ADMIN") {
+            const groomers = await prisma.groomerProfile.findMany({
+                include: {
+                    user: {
+                        include: {
+                            photo: true,
+                        },
+                    },
+                    services: {
+                        where: {
+                            is_active: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            });
+            return res.json(groomers);
+        }
+
+        const profile = await prisma.groomerProfile.findUnique({
+            where: { userId: req.user.id },
+            include: {
+                user: {
+                    include: {
+                        photo: true,
+                    },
+                },
+                services: {
+                    where: {
+                        is_active: true,
+                    },
+                },
+            },
+        });
+
+        if (!profile) {
+            return res.status(404).json({ error: "Groomer profile not found" });
+        }
+
+        res.json(profile);
+    }),
+);
+
+router.get(
+    "/:id/my-services",
+    requireGroomerProfileOwnership,
+    asyncHandler(async (req, res) => {
+        const services = await prisma.service.findMany({
+            where: {
+                groomer_profile_id: req.params.id,
+            },
+        });
+        res.json(services);
+    }),
+);
 
 router.post(
   "/",

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Calendar, Dog, Settings, LogOut, Plus, Pencil, Home, Clock } from 'lucide-react';
+import { truncateText } from '../components/ui/utils';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -63,12 +64,12 @@ function BookingCard({ apt, onCancel }: { apt: Booking; onCancel: () => void }) 
                 {formatDate(apt.start_datetime)} at {formatTime(apt.start_datetime)}
               </div>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span
-                  className="text-xs px-2 py-1 rounded-full"
-                  style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)' }}
-              >
-                🐾 {apt.dog.name}
-              </span>
+                <span
+                    className="text-xs px-2 py-1 rounded-full"
+                    style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)' }}
+                >
+                  🐾 {truncateText(apt.dog.name, 21)}
+                </span>
                 <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                 · {apt.service.name}
               </span>
@@ -233,9 +234,15 @@ export function CustomerDashboard() {
         {/* ── Sidebar (Desktop) ── */}
         <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
           <div className="p-6 border-b border-[var(--color-border)]">
-            <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
+            <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="text-2xl font-extrabold text-left hover:opacity-80 transition-opacity"
+                style={{ fontFamily: 'var(--font-display)' }}
+                aria-label="Go to home"
+              >
               Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-            </div>
+            </button>
           </div>
 
           <nav className="flex-1 p-4 overflow-y-auto">
@@ -292,7 +299,7 @@ export function CustomerDashboard() {
                   </h1>
                   <p style={{ color: 'var(--color-text-secondary)' }}>
                     {daysUntilNext !== null
-                        ? `${nextBooking?.dog?.name ?? 'Your dog'}'s next groom is ${
+                        ? `${nextBooking?.dog?.name ? truncateText(nextBooking.dog.name, 21) : 'Your dog'}'s next groom is ${
                             daysUntilNext === 0 ? 'today!' : daysUntilNext === 1 ? 'tomorrow' : `in ${daysUntilNext} days`
                         }`
                         : 'No upcoming appointments yet.'}
@@ -338,8 +345,8 @@ export function CustomerDashboard() {
                             {formatDate(nextBooking.start_datetime)} at {formatTime(nextBooking.start_datetime)}
                           </div>
                           <div className="flex gap-2 flex-wrap">
-                      <span className="text-sm px-3 py-1 rounded-full font-bold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                        🐾 {nextBooking.dog.name}
+                        <span className="text-sm px-3 py-1 rounded-full font-bold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                        🐾 {truncateText(nextBooking.dog.name, 21)}
                       </span>
                             <span className="text-sm px-3 py-1 rounded-full font-bold" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
                         ✂️ {nextBooking.service.name}
@@ -414,8 +421,8 @@ export function CustomerDashboard() {
                                 style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)' }}
                                 onClick={() => navigate(`/dashboard/dogs/${dog.id}/edit`)}
                             >
-                              🐾 {dog.name}
-                              {dog.breed && <span className="text-xs opacity-70">· {dog.breed}</span>}
+                                🐾 {truncateText(dog.name, 21)}
+                                  {dog.breed && <span className="text-xs opacity-70">· {truncateText(dog.breed, 18)}</span>}
                             </div>
                         ))}
                       </div>
@@ -511,9 +518,9 @@ export function CustomerDashboard() {
                         >
                           <Dog size={40} style={{ color: 'var(--color-primary)' }} />
                         </div>
-                        <h3 className="font-extrabold text-center mb-1">{dog.name}</h3>
+                        <h3 className="font-extrabold text-center mb-1">{truncateText(dog.name, 21)}</h3>
                         <div className="text-sm text-center mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                          {[dog.breed, dog.weight_kg ? `${dog.weight_kg} kg` : null].filter(Boolean).join(' · ')}
+                          {[dog.breed ? truncateText(dog.breed, 18) : dog.breed, dog.weight_kg ? `${dog.weight_kg} kg` : null].filter(Boolean).join(' · ')}
                         </div>
                         {dog.temperament && (
                             <div className="flex justify-center mb-2">
@@ -594,7 +601,7 @@ export function CustomerDashboard() {
                                 >
                                   <td className="p-4">{formatDate(apt.start_datetime)}</td>
                                   <td className="p-4 font-bold">{apt.groomer_profile.display_name}</td>
-                                  <td className="p-4">{apt.dog.name}</td>
+                                   <td className="p-4">{truncateText(apt.dog.name, 21)}</td>
                                   <td className="p-4">{apt.service.name}</td>
                                   <td className="p-4">
                                     <Badge
@@ -655,7 +662,7 @@ export function CustomerDashboard() {
                           {formatDate(apt.start_datetime)} at {formatTime(apt.start_datetime)}
                         </div>
                         <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                          {apt.dog.name} · {apt.service.name}
+                          {truncateText(apt.dog.name, 21)} · {apt.service.name}
                         </div>
                       </div>
                   );

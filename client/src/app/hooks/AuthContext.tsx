@@ -6,6 +6,9 @@ interface AuthUser {
     id: string;
     email: string;
     role: 'CLIENT' | 'GROOMER' | 'ADMIN';
+    photo?: {
+        url?: string | null;
+    } | null;
 }
 
 interface AuthContextValue {

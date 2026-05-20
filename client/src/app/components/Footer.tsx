@@ -21,8 +21,6 @@ export function Footer() {
               <Link to="/groomers" className="hover:text-white transition-colors">Our Groomers</Link>
               <Link to="/gallery" className="hover:text-white transition-colors">Gallery</Link>
               <Link to="/about" className="hover:text-white transition-colors">About</Link>
-              <Link to="/reviews" className="hover:text-white transition-colors">Reviews</Link>
-              <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
             </div>
           </div>
 
@@ -30,8 +28,8 @@ export function Footer() {
             <h4 className="font-bold mb-4">Contact</h4>
             <div className="text-gray-400 flex flex-col gap-2">
               <p>hello@pawbook.com</p>
-              <p>(555) 123-4567</p>
-              <p>123 Main Street</p>
+              <p>+40 753 897 777</p>
+              <p>Str. Cobzarilor 26</p>
             </div>
           </div>
 

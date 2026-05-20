@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Upload, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
 import { useAuth } from '../hooks/AuthContext';
 
 const API_BASE = '/api';
+const WEIGHT_MAX = 200;
 
 const temperamentOptions = ['Calm', 'Anxious', 'Playful', 'Energetic', 'Aggressive', 'Shy'];
 
@@ -49,12 +50,15 @@ export function DogProfilePage() {
         const res = await fetch(`${API_BASE}/dogs/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error('Dog not found');
+        if (!res.ok) {
+          setError('Dog not found');
+          return;
+        }
         const dog = await res.json();
         setForm({
           name: dog.name ?? '',
           breed: dog.breed ?? '',
-          weight_kg: dog.weight_kg != null ? String(dog.weight_kg) : '',
+          weight_kg: dog.weight_kg != null ? String(Math.min(Number(dog.weight_kg), WEIGHT_MAX)) : '',
           temperament: dog.temperament ? dog.temperament.split(',').map((t: string) => t.trim()) : [],
           notes: dog.notes ?? '',
         });
@@ -87,7 +91,7 @@ export function DogProfilePage() {
       name: form.name,
       breed: form.breed || undefined,
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : undefined,
-      temperament: form.temperament.length > 0 ? form.temperament.join(', ') : undefined,
+      temperament: form.temperament.length > 0 ? form.temperament.join(', ') : null,
       notes: form.notes || undefined,
     };
 
@@ -106,7 +110,8 @@ export function DogProfilePage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? 'Save failed');
+        setError(err.error ?? 'Save failed');
+        return;
       }
 
       navigate('/dashboard/customer');
@@ -128,7 +133,8 @@ export function DogProfilePage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? 'Delete failed');
+        setError(err.error ?? 'Delete failed');
+        return;
       }
       navigate('/dashboard/customer');
     } catch (err: any) {
@@ -170,40 +176,20 @@ export function DogProfilePage() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Avatar placeholder */}
-              <div className="flex flex-col items-center mb-8">
-                <div className="relative">
-                  <div
-                      className="w-32 h-32 rounded-full border-4 border-dashed flex flex-col items-center justify-center"
-                      style={{
-                        borderColor: 'var(--color-primary)',
-                        backgroundColor: 'var(--color-primary-light)',
-                      }}
-                  >
-                    <Upload size={32} style={{ color: 'var(--color-primary)' }} />
-                    <span className="text-xs mt-2 font-bold" style={{ color: 'var(--color-primary)' }}>
-                    Add photo
-                  </span>
-                  </div>
-                  <button
-                      type="button"
-                      className="absolute bottom-0 right-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
-                      style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}
-                  >
-                    <Upload size={16} />
-                  </button>
-                </div>
-              </div>
-
               {/* Name */}
-              <Input
-                  label="Dog's Name"
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g., Biscuit"
-                  required
-              />
+              <div>
+                  <Input
+                      label="Dog's Name"
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="e.g., Biscuit"
+                      required
+                  />
+                  <div className="text-right text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                    {form.name.length} characters
+                  </div>
+              </div>
 
               {/* Breed */}
               <div>
@@ -236,10 +222,25 @@ export function DogProfilePage() {
                   <input
                       type="number"
                       value={form.weight_kg}
-                      onChange={(e) => setForm({ ...form, weight_kg: e.target.value })}
+                      onChange={(e) => {
+                        const rawValue = e.target.value;
+                        if (rawValue === '') {
+                          setForm({ ...form, weight_kg: '' });
+                          return;
+                        }
+
+                        const nextValue = Number(rawValue);
+                        if (Number.isNaN(nextValue)) return;
+
+                        setForm({
+                          ...form,
+                          weight_kg: String(Math.min(nextValue, WEIGHT_MAX)),
+                        });
+                      }}
                       className="w-full px-4 py-3 pr-16 rounded-2xl border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                       placeholder="12"
                       min="0"
+                      max={WEIGHT_MAX}
                       step="0.1"
                   />
                   <span
@@ -247,7 +248,10 @@ export function DogProfilePage() {
                       style={{ color: 'var(--color-text-secondary)' }}
                   >
                   kg
-                </span>
+                  </span>
+                </div>
+                <div className="text-right text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  Max {WEIGHT_MAX} kg
                 </div>
               </div>
 

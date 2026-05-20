@@ -9,6 +9,7 @@ import { SignUpPage } from './app/pages/SignUpPage.tsx';
 import { LoginPage } from './app/pages/LoginPage.tsx';
 import { GroomerListingPage } from './app/pages/GroomerListingPage.tsx';
 import { GroomerPublicProfile } from './app/pages/GroomerPublicProfile.tsx';
+import {ServicesPage} from "@/app/pages/ServicesPage.tsx";
 
 // Protected Pages
 import { CustomerDashboard } from './app/pages/CustomerDashboard.tsx';
@@ -16,8 +17,6 @@ import { DogProfilePage } from './app/pages/DogProfilePage.tsx';
 import { BookingFlow } from './app/pages/BookingFlow.tsx';
 import { GroomerDashboard } from './app/pages/GroomerDashboard.tsx';
 import { AdminPanel } from './app/pages/AdminPanel.tsx';
-import {Settings} from "lucide-react";
-
 
 // Placeholder for pages not yet built
 function ComingSoon({ page }) {
@@ -78,13 +77,13 @@ export default function App() {
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
+                    <Route path="/services" element={<ServicesPage />} />
 
                     {/* ── Groomer Discovery (public) ── */}
                     <Route path="/groomers" element={<GroomerListingPage />} />
                     <Route path="/groomers/:id" element={<GroomerPublicProfile />} />
 
                     <Route path="/services" element={<ComingSoon page="Services" />} />
-                    <Route path="/reviews" element={<ComingSoon page="Reviews" />} />
                     <Route path="/contact" element={<ComingSoon page="Contact" />} />
 
                     {/* ── Customer Dashboard ── */}
