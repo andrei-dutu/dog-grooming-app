@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, Search, Calendar, Users, Building, Settings, LogOut, Plus, X } from 'lucide-react';
+import { Link } from 'react-router';
+import { TrendingUp, Calendar, Users, Building, Settings, LogOut, Plus, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { truncateText } from '../components/ui/utils';
 import { Card } from '../components/ui/card';
@@ -126,7 +127,8 @@ export function AdminPanel() {
             });
             if (!inviteRes.ok) {
                 const err = await inviteRes.json();
-                throw new Error(err.error ?? 'Failed to generate invite');
+                setInviteError(err.error ?? 'Failed to generate invite');
+                return;
             }
             const { token: inviteToken } = await inviteRes.json();
 
@@ -141,7 +143,8 @@ export function AdminPanel() {
             });
             if (!registerRes.ok) {
                 const err = await registerRes.json();
-                throw new Error(err.error ?? 'Failed to register groomer');
+                setInviteError(err.error ?? 'Failed to register groomer');
+                return;
             }
 
             setShowInviteModal(false);
@@ -269,9 +272,14 @@ export function AdminPanel() {
             {/* ── Sidebar ── */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
                 <div className="p-6 border-b border-[var(--color-border)]">
-                    <div className="text-2xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+                    <Link
+                        to="/"
+                        className="text-2xl font-extrabold mb-1 text-left hover:opacity-80 transition-opacity"
+                        style={{ fontFamily: 'var(--font-display)' }}
+                        aria-label="Go to home"
+                    >
                         Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-                    </div>
+                    </Link>
                     <Badge variant="primary" className="text-xs">Admin Panel</Badge>
                 </div>
 
