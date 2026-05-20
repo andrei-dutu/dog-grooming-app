@@ -7,6 +7,21 @@ export function createRepository({ delegate, Entity, beforeCreate, beforeUpdate 
       return rows.map((row) => Entity.fromPrisma(row));
     },
 
+    async findMany({ filters = {} } = {}) {
+      const where = {};
+
+      for (const [key, value] of Object.entries(filters)) {
+        if (Array.isArray(value)) {
+          where[key] = { in: value };
+        } else {
+          where[key] = value;
+        }
+      }
+
+      const rows = await delegate.findMany({ where });
+      return rows.map((row) => Entity.fromPrisma(row));
+    },
+
     async findById(id) {
       const row = await delegate.findUnique({ where: { id } });
       if (!row) {

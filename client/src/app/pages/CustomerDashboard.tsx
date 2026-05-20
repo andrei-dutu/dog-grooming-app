@@ -46,7 +46,11 @@ function formatTime(iso: string) {
 }
 
 function BookingCard({ apt, onCancel }: { apt: Booking; onCancel: () => void }) {
-  const isPast = new Date(apt.start_datetime) < new Date() || apt.cancelled || apt.status === 'CANCELLED';
+  const now = new Date();
+  const appointmentTime = new Date(apt.start_datetime);
+  const isPast = appointmentTime < now || apt.cancelled || apt.status === 'CANCELLED';
+  const hoursUntil = (appointmentTime.getTime() - now.getTime()) / 3_600_000;
+  const canCancel = !isPast && hoursUntil >= 24;
 
   return (
       <Card className="p-4 border-l-4" style={{ borderColor: isPast ? 'var(--color-border)' : 'var(--color-primary)' }}>
@@ -93,9 +97,14 @@ function BookingCard({ apt, onCancel }: { apt: Booking; onCancel: () => void }) 
             )}
             {!isPast && (
                 <button
-                    onClick={onCancel}
-                    className="text-sm font-bold px-3 py-1 rounded-lg hover:bg-red-50 transition-colors"
-                    style={{ color: 'var(--color-error)' }}
+                    onClick={canCancel ? onCancel : undefined}
+                    className="text-sm font-bold px-3 py-1 rounded-lg transition-colors"
+                    style={{
+                      color: canCancel ? 'var(--color-error)' : 'var(--color-text-secondary)',
+                      cursor: canCancel ? 'pointer' : 'not-allowed',
+                      opacity: canCancel ? 1 : 0.5,
+                    }}
+                    title={canCancel ? undefined : 'Cancellations must be made at least 24 hours in advance'}
                 >
                   Cancel
                 </button>
@@ -119,6 +128,7 @@ export function CustomerDashboard() {
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [cancelError, setCancelError] = useState('');
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -174,6 +184,7 @@ export function CustomerDashboard() {
   const handleCancelConfirm = async () => {
     if (!cancelTargetId || !token) return;
     setCancelLoading(true);
+    setCancelError('');
     try {
       const res = await fetch(`${API_BASE}/bookings/${cancelTargetId}`, {
         method: 'PUT',
@@ -184,25 +195,30 @@ export function CustomerDashboard() {
           cancellation_reason: cancelReason || undefined,
         }),
       });
-      if (res.ok) {
-        setBookings((prev) =>
-            prev.map((b) =>
-                b.id === cancelTargetId ? { ...b, cancelled: true, status: 'CANCELLED' } : b
-            )
-        );
+      if (!res.ok) {
+        const err = await res.json();
+        setCancelError(err.error ?? 'Cancellation failed');
+        return;
       }
-    } catch (err) {
-      console.error('Cancel error:', err);
-    } finally {
-      setCancelLoading(false);
+      setBookings((prev) =>
+          prev.map((b) =>
+              b.id === cancelTargetId ? { ...b, cancelled: true, status: 'CANCELLED' } : b
+          )
+      );
       setShowCancelModal(false);
       setCancelTargetId(null);
       setCancelReason('');
+    } catch (err) {
+      console.error('Cancel error:', err);
+      setCancelError('Something went wrong. Please try again.');
+    } finally {
+      setCancelLoading(false);
     }
   };
 
   const openCancelModal = (id: string) => {
     setCancelTargetId(id);
+    setCancelError('');
     setShowCancelModal(true);
   };
 
@@ -234,15 +250,9 @@ export function CustomerDashboard() {
         {/* ── Sidebar (Desktop) ── */}
         <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
           <div className="p-6 border-b border-[var(--color-border)]">
-            <button
-                type="button"
-                onClick={() => navigate('/')}
-                className="text-2xl font-extrabold text-left hover:opacity-80 transition-opacity"
-                style={{ fontFamily: 'var(--font-display)' }}
-                aria-label="Go to home"
-              >
+            <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
               Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-            </button>
+            </div>
           </div>
 
           <nav className="flex-1 p-4 overflow-y-auto">
@@ -354,9 +364,19 @@ export function CustomerDashboard() {
                           </div>
                         </div>
                         <button
-                            onClick={() => openCancelModal(nextBooking.id)}
+                            onClick={() => {
+                              const hoursUntil = (new Date(nextBooking.start_datetime).getTime() - Date.now()) / 3_600_000;
+                              if (hoursUntil < 24) return;
+                              openCancelModal(nextBooking.id);
+                            }}
                             className="text-sm font-bold px-4 py-2 rounded-xl transition-all"
-                            style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white' }}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.2)',
+                              color: 'white',
+                              opacity: (new Date(nextBooking.start_datetime).getTime() - Date.now()) / 3_600_000 < 24 ? 0.5 : 1,
+                              cursor: (new Date(nextBooking.start_datetime).getTime() - Date.now()) / 3_600_000 < 24 ? 'not-allowed' : 'pointer',
+                            }}
+                            title={(new Date(nextBooking.start_datetime).getTime() - Date.now()) / 3_600_000 < 24 ? 'Cancellations must be made at least 24 hours in advance' : undefined}
                         >
                           Cancel
                         </button>
@@ -421,8 +441,8 @@ export function CustomerDashboard() {
                                 style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)' }}
                                 onClick={() => navigate(`/dashboard/dogs/${dog.id}/edit`)}
                             >
-                                🐾 {truncateText(dog.name, 21)}
-                                  {dog.breed && <span className="text-xs opacity-70">· {truncateText(dog.breed, 18)}</span>}
+                              🐾 {truncateText(dog.name, 21)}
+                              {dog.breed && <span className="text-xs opacity-70">· {truncateText(dog.breed, 18)}</span>}
                             </div>
                         ))}
                       </div>
@@ -601,7 +621,7 @@ export function CustomerDashboard() {
                                 >
                                   <td className="p-4">{formatDate(apt.start_datetime)}</td>
                                   <td className="p-4 font-bold">{apt.groomer_profile.display_name}</td>
-                                   <td className="p-4">{truncateText(apt.dog.name, 21)}</td>
+                                  <td className="p-4">{truncateText(apt.dog.name, 21)}</td>
                                   <td className="p-4">{apt.service.name}</td>
                                   <td className="p-4">
                                     <Badge
@@ -642,7 +662,7 @@ export function CustomerDashboard() {
         {showCancelModal && (
             <div
                 className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-                onClick={() => { setShowCancelModal(false); setCancelTargetId(null); setCancelReason(''); }}
+                onClick={() => { setShowCancelModal(false); setCancelTargetId(null); setCancelReason(''); setCancelError(''); }}
             >
               <Card
                   className="p-8 w-full max-w-md"
@@ -677,11 +697,16 @@ export function CustomerDashboard() {
                       className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
+                {cancelError && (
+                    <p className="text-sm font-bold mb-4" style={{ color: 'var(--color-error)' }}>
+                      ⚠️ {cancelError}
+                    </p>
+                )}
                 <div className="flex gap-3">
                   <Button
                       variant="ghost"
                       size="md"
-                      onClick={() => { setShowCancelModal(false); setCancelTargetId(null); setCancelReason(''); }}
+                      onClick={() => { setShowCancelModal(false); setCancelTargetId(null); setCancelReason(''); setCancelError(''); }}
                       className="flex-1"
                   >
                     Keep It

@@ -139,6 +139,22 @@ router.put(
     "/:id",
     requireBookingOwnership,
     asyncHandler(async (req, res) => {
+        // Enforce 24-hour cancellation window for non-admin users
+        if (req.body.cancelled === true && req.user.role !== "ADMIN") {
+            const existing = await prisma.booking.findUnique({
+                where: { id: req.params.id },
+            });
+            if (existing && !existing.cancelled && existing.status !== "CANCELLED") {
+                const hoursUntilAppointment =
+                    (new Date(existing.start_datetime).getTime() - Date.now()) / 3_600_000;
+                if (hoursUntilAppointment < 24) {
+                    throw new HttpError(
+                        422,
+                        "Cancellations must be made at least 24 hours before the appointment"
+                    );
+                }
+            }
+        }
         const booking = await bookingRepository.update(req.params.id, req.body);
         res.json(booking.toJSON());
     })

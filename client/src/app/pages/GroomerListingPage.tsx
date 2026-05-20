@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Star, Clock, ChevronDown, Search } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -29,17 +28,11 @@ interface Groomer {
     services: Service[];
 }
 
-const SPECIALTY_OPTIONS = ['Anxious dogs', 'Large breeds', 'Doodles', 'Puppies', 'Small breeds', 'Seniors'];
-
 export function GroomerListingPage() {
     const navigate = useNavigate();
 
     const [groomers, setGroomers] = useState<Groomer[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [filterSpecialty, setFilterSpecialty] = useState('');
-    const [filterAvailable, setFilterAvailable] = useState(false);
-    const [specialtyOpen, setSpecialtyOpen] = useState(false);
 
     useEffect(() => {
         fetch(`${API_BASE}/groomer-profiles/public`)
@@ -49,21 +42,13 @@ export function GroomerListingPage() {
             .finally(() => setLoading(false));
     }, []);
 
-    const filtered = groomers.filter(g => {
-        const nameMatch = g.display_name.toLowerCase().includes(search.toLowerCase());
-        const specMatch = filterSpecialty
-            ? g.specialties?.toLowerCase().includes(filterSpecialty.toLowerCase())
-            : true;
-        return nameMatch && specMatch;
-    });
-
     return (
         <div className="min-h-screen" style={{ backgroundColor: 'var(--color-surface)' }}>
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Page Header */}
-                <div className="mb-8">
+                <div className="mb-12">
                     <div className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                         Home › Our Groomers
                     </div>
@@ -73,59 +58,6 @@ export function GroomerListingPage() {
                     <p style={{ color: 'var(--color-text-secondary)' }}>
                         All our groomers are certified, background-checked, and dog-obsessed.
                     </p>
-                </div>
-
-                {/* Search + Filter Bar */}
-                <div className="sticky top-20 z-40 bg-white/90 backdrop-blur-sm -mx-6 px-6 py-4 mb-8 border-y border-[var(--color-border)]">
-                    <div className="flex gap-3 overflow-x-auto items-center">
-                        {/* Search */}
-                        <div className="relative flex-shrink-0">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-secondary)' }} />
-                            <input
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                placeholder="Search groomers…"
-                                className="pl-9 pr-4 py-2 rounded-full border border-[var(--color-border)] font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] w-48"
-                            />
-                        </div>
-
-                        {/* Specialty dropdown */}
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-border)] bg-white hover:border-[var(--color-primary)] transition-colors whitespace-nowrap font-bold text-sm"
-                                onClick={() => setSpecialtyOpen(o => !o)}
-                            >
-                                {filterSpecialty || 'Specialty'} <ChevronDown size={15} />
-                            </button>
-                            {specialtyOpen && (
-                                <div className="absolute top-full mt-2 left-0 bg-white rounded-2xl shadow-xl border border-[var(--color-border)] z-50 min-w-[180px] py-2">
-                                    <button
-                                        className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-[var(--color-primary-light)]"
-                                        onClick={() => { setFilterSpecialty(''); setSpecialtyOpen(false); }}
-                                    >
-                                        All Specialties
-                                    </button>
-                                    {SPECIALTY_OPTIONS.map(s => (
-                                        <button key={s} className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-[var(--color-primary-light)]"
-                                                onClick={() => { setFilterSpecialty(s); setSpecialtyOpen(false); }}>
-                                            {s}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Clear filters */}
-                        {(search || filterSpecialty) && (
-                            <button
-                                className="text-sm font-bold px-4 py-2 rounded-full hover:bg-[var(--color-primary-light)]"
-                                style={{ color: 'var(--color-primary)' }}
-                                onClick={() => { setSearch(''); setFilterSpecialty(''); }}
-                            >
-                                Clear ×
-                            </button>
-                        )}
-                    </div>
                 </div>
 
                 {/* Grid */}
@@ -141,14 +73,9 @@ export function GroomerListingPage() {
                             </Card>
                         ))}
                     </div>
-                ) : filtered.length === 0 ? (
-                    <Card className="p-12 text-center" style={{ color: 'var(--color-text-secondary)' }}>
-                        <div className="text-5xl mb-4">🔍</div>
-                        <p className="font-bold">No groomers match your search.</p>
-                    </Card>
                 ) : (
                     <div className="grid md:grid-cols-3 gap-6">
-                        {filtered.map(groomer => {
+                        {groomers.map(groomer => {
                             const avatarUrl = groomer.user?.photo?.url;
                             const specialties = groomer.specialties
                                 ? groomer.specialties.split(',').map(s => s.trim()).filter(Boolean)
@@ -188,14 +115,14 @@ export function GroomerListingPage() {
                                                 {specialties.slice(0, 3).map((spec, i) => (
                                                     <span key={i} className="px-2.5 py-1 rounded-full text-xs font-bold"
                                                           style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-text-primary)' }}>
-                            {spec}
-                          </span>
+                                                        {spec}
+                                                    </span>
                                                 ))}
                                                 {specialties.length > 3 && (
                                                     <span className="px-2.5 py-1 rounded-full text-xs font-bold"
                                                           style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-text-secondary)' }}>
-                            +{specialties.length - 3}
-                          </span>
+                                                        +{specialties.length - 3}
+                                                    </span>
                                                 )}
                                             </div>
                                         )}
