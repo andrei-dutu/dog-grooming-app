@@ -119,6 +119,21 @@ router.post(
   }),
 );
 
+router.get(
+    "/me",
+    asyncHandler(async (req, res) => {
+        const groomerProfile = await prisma.groomerProfile.findUnique({
+            where: { userId: req.user.id },
+        });
+
+        if (!groomerProfile) {
+            return res.status(404).json({ error: "Groomer profile not found" });
+        }
+
+        res.json(groomerProfile);
+    }),
+);
+
 router.put(
   "/:id",
   requireGroomerProfileOwnership,
