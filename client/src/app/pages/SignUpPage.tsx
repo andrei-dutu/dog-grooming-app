@@ -3,7 +3,14 @@ import { useNavigate, Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ImageWithFallback';
-import { isValidEmail } from '../lib/validation';
+import {
+  isValidEmail,
+  normalizeEmail,
+  isValidPhone,
+  sanitizePhoneInput,
+  isValidName,
+  sanitizeNameInput,
+} from '../lib/validation';
 
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -36,10 +43,15 @@ export function SignUpPage() {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName) newErrors.firstName = 'This field is required';
-    if (!formData.lastName) newErrors.lastName = 'This field is required';
+    if (!formData.firstName.trim()) newErrors.firstName = 'This field is required';
+    else if (!isValidName(formData.firstName)) newErrors.firstName = 'Name can only contain letters';
+    if (!formData.lastName.trim()) newErrors.lastName = 'This field is required';
+    else if (!isValidName(formData.lastName)) newErrors.lastName = 'Name can only contain letters';
     if (!formData.email) newErrors.email = 'This field is required';
     else if (!isValidEmail(formData.email)) newErrors.email = 'Invalid email format';
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      newErrors.phone = 'Enter a valid phone number (digits only, at least 10 digits)';
+    }
     if (!formData.password) newErrors.password = 'This field is required';
     if (!formData.confirmPassword) newErrors.confirmPassword = 'This field is required';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords don't match";
@@ -55,7 +67,7 @@ export function SignUpPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              email: formData.email,
+              email: normalizeEmail(formData.email),
               password: formData.password,
               firstName: formData.firstName,
               lastName: formData.lastName,
@@ -160,7 +172,10 @@ export function SignUpPage() {
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, firstName: sanitizeNameInput(e.target.value) });
+                    if (errors.firstName) setErrors((prev) => ({ ...prev, firstName: '' }));
+                  }}
                   className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
                     errors.firstName ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
                   } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent`}
@@ -178,7 +193,10 @@ export function SignUpPage() {
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, lastName: sanitizeNameInput(e.target.value) });
+                    if (errors.lastName) setErrors((prev) => ({ ...prev, lastName: '' }));
+                  }}
                   className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
                     errors.lastName ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
                   } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent`}
@@ -218,12 +236,22 @@ export function SignUpPage() {
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2" size={20} style={{ color: 'var(--color-text-secondary)' }} />
                 <input
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 rounded-2xl border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: sanitizePhoneInput(e.target.value) });
+                    if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
+                  }}
+                  className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
+                    errors.phone ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
+                  } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent`}
                   placeholder="(555) 123-4567"
                 />
               </div>
+              {errors.phone && (
+                <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>{errors.phone}</p>
+              )}
             </div>
 
             {/* Password */}

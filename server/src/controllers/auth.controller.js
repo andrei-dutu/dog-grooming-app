@@ -1,5 +1,6 @@
 import { authService } from "../services/auth.service.js";
 import { HttpError } from "../utils/httpError.js";
+import { isValidEmail, normalizeEmail } from "../utils/emailValidation.js";
 
 export const authController = {
   async register(req, res) {
@@ -13,10 +14,10 @@ export const authController = {
   },
 
   async inviteGroomer(req, res) {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
 
-    if (!email || !email.includes("@")) {
-      throw new HttpError(400, "Valid email is required");
+    if (!isValidEmail(email)) {
+      throw new HttpError(400, "Invalid email format");
     }
 
     const invitationToken = authService.generateGroomerInvitationToken(email);

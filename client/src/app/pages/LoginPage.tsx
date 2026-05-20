@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ImageWithFallback';
-import { isValidEmail } from '../lib/validation';
+import { isValidEmail, normalizeEmail } from '../lib/validation';
 import { useAuth } from '../hooks/AuthContext';
 
 export function LoginPage() {
@@ -33,7 +33,7 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(normalizeEmail(email), password);
 
       const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
       const role = storedUser.role;
