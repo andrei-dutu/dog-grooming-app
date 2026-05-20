@@ -15,7 +15,7 @@ export function HomePage() {
 
   useEffect(() => {
     // Fetch groomer profiles — server now includes the related `user` and user's `photo`.
-    fetch('http://localhost:3001/api/groomer-profiles')
+    fetch('http://localhost:3001/api/groomer-profiles/public')
       .then((res) => res.json())
       .then((data) => {
         // take first 3 for the homepage carousel

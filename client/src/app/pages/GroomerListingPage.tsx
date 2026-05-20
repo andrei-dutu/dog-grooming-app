@@ -42,7 +42,7 @@ export function GroomerListingPage() {
     const [specialtyOpen, setSpecialtyOpen] = useState(false);
 
     useEffect(() => {
-        fetch(`${API_BASE}/groomer-profiles`)
+        fetch(`${API_BASE}/groomer-profiles/public`)
             .then(r => r.json())
             .then((data: Groomer[]) => setGroomers(data))
             .catch(console.error)

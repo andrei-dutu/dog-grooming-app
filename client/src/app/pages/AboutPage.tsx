@@ -21,8 +21,7 @@ export function AboutPage() {
   const [loadingGroomers, setLoadingGroomers] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/groomer-profiles')
-      .then((res) => res.json())
+    fetch('http://localhost:3001/api/groomer-profiles/public')      .then((res) => res.json())
       .then((data) => {
         setGroomers(Array.isArray(data) ? data.slice(0, 3) : []);
         setLoadingGroomers(false);
