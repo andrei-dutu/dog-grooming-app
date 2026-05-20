@@ -1,16 +1,31 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
 import { HttpError } from "../utils/httpError.js";
+import { isValidEmail, normalizeEmail } from "../utils/emailValidation.js";
+import { isValidPhone, normalizePhone } from "../utils/phoneValidation.js";
+import { isValidName, normalizeName } from "../utils/nameValidation.js";
 import { userRepository, customerProfileRepository, groomerProfileRepository } from "../repositories/index.js";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export const authService = {
-  async register({ email, password, birthday, firstName, lastName, phone }) {
+  async register({ email: rawEmail, password, birthday, firstName, lastName, phone }) {
+    const email = normalizeEmail(rawEmail);
 
-    if (!email || !EMAIL_REGEX.test(email)) {
+    if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
+
+    if (!isValidPhone(phone)) {
+      throw new HttpError(400, "Invalid phone number");
+    }
+
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!isValidName(firstName) || !isValidName(lastName)) {
+      throw new HttpError(400, "Names can only contain letters");
+    }
+
+    const normalizedFirstName = normalizeName(firstName);
+    const normalizedLastName = normalizeName(lastName);
 
     const existing = await userRepository.findByEmail(email);
     if (existing) {
@@ -27,68 +42,49 @@ export const authService = {
   
     await customerProfileRepository.create({
       userId: user.id,
-      first_name: firstName,
-      last_name: lastName,
-      phone: phone || null,
+      first_name: normalizedFirstName,
+      last_name: normalizedLastName,
+      phone: normalizedPhone,
     });
   
     return user;
   },
 
-  async groomerRegister({ token, password, displayName, bio, credentials, specialties }) {
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      throw new HttpError(401, "Invalid or expired invitation token");
+  async createGroomer({ email: rawEmail, password, displayName, bio, specialties, credentials }) {
+    const email = normalizeEmail(rawEmail);
+
+    if (!isValidEmail(email)) {
+      throw new HttpError(400, "Invalid email format");
     }
 
-    const { email } = decoded;
-
-    if (!email || !EMAIL_REGEX.test(email)) {
-      throw new HttpError(400, "Invalid email in invitation token");
-    }
-    
     const existing = await userRepository.findByEmail(email);
     if (existing) {
-      throw new HttpError(409, "This email is already registered");
+      throw new HttpError(409, "Email already in use");
     }
-  
+
     const user = await userRepository.create({
       email,
       password,
       role: "GROOMER",
       status: "ACTIVE",
     });
-  
+
     await groomerProfileRepository.create({
       userId: user.id,
-      display_name: displayName,
+      display_name: displayName || email.split("@")[0],
       bio: bio || null,
       credentials: credentials || null,
       specialties: specialties || null,
       is_public: false,
     });
-  
+
     return user;
   },
 
-  generateGroomerInvitationToken(email) {
+  async login({ email: rawEmail, password }) {
+    const email = normalizeEmail(rawEmail);
 
-    if (!email || !EMAIL_REGEX.test(email)) {
-      throw new HttpError(400, "Invalid email format");
-    }
-
-    return jwt.sign(
-      { email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-},
-
-  async login({ email, password }) {
-
-    if (!email || !EMAIL_REGEX.test(email)) {
+    if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
 
@@ -117,5 +113,28 @@ export const authService = {
     );
   
     return { token, user };
+  },
+
+  async changePassword(userId, { currentPassword, newPassword }) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      throw new HttpError(401, "Current password is incorrect");
+    }
+
+    await userRepository.update(userId, { password: newPassword });
+  },
+
+  async deleteAccount(userId) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    await userRepository.delete(userId);
   },
 };

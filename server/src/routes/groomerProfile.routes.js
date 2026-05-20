@@ -49,7 +49,11 @@ router.get(
       where: { id: req.params.id },
       include: {
         user: { include: { photo: true } },
-        services: true,
+          services: {
+              where: {
+                  is_active: true,
+              },
+          },
       },
     });
 
@@ -61,11 +65,37 @@ router.get(
   }),
 );
 
+router.get(
+  "/:id/services",
+  asyncHandler(async (req, res) => {
+    const services = await prisma.service.findMany({
+      where: {
+        groomer_profile_id: req.params.id,
+        is_active: true,
+      },
+    });
+    res.json(services);
+  }),
+);
+
 /**
  * PROTECTED - own profile/admin management
  */
 router.use(authenticate);
 router.use(authorize("GROOMER", "ADMIN"));
+
+router.get(
+    "/:id/my-services",
+    requireGroomerProfileOwnership,
+    asyncHandler(async (req, res) => {
+        const services = await prisma.service.findMany({
+            where: {
+                groomer_profile_id: req.params.id,
+            },
+        });
+        res.json(services);
+    }),
+);
 
 router.post(
   "/",

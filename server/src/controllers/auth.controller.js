@@ -1,5 +1,6 @@
 import { authService } from "../services/auth.service.js";
 import { HttpError } from "../utils/httpError.js";
+import { isValidEmail, normalizeEmail } from "../utils/emailValidation.js";
 
 export const authController = {
   async register(req, res) {
@@ -13,23 +14,8 @@ export const authController = {
   },
 
   async inviteGroomer(req, res) {
-    const { email } = req.body;
-
-    if (!email || !email.includes("@")) {
-      throw new HttpError(400, "Valid email is required");
-    }
-
-    const invitationToken = authService.generateGroomerInvitationToken(email);
-    const inviteLink = `${process.env.FRONTEND_URL}/groomer-signup?token=${invitationToken}`;
-
-    // TODO: Trimite email (implementa serviciu email)
-    console.log(`Invitation for ${email}: ${inviteLink}`);
-
-    res.status(200).json({
-      message: "Invitation generated successfully",
-      email,
-      inviteLink, // Șterge în producție
-    });
+    const user = await authService.createGroomer(req.body);
+    res.status(201).json(user);
   },
   
   async login(req, res) {
@@ -39,6 +25,16 @@ export const authController = {
 
   async logout(req, res) {
     res.json({ message: "Logged out successfully" });
+  },
+
+  async changePassword(req, res) {
+    await authService.changePassword(req.user.id, req.body);
+    res.json({ message: "Password changed successfully" });
+  },
+
+  async deleteAccount(req, res) {
+    await authService.deleteAccount(req.user.id);
+    res.json({ message: "Account deleted successfully" });
   },
 
   async me(req, res) {

@@ -311,10 +311,9 @@ export function GroomerDashboard() {
         if (!token) return;
         setLoading(true);
         try {
-            const [profileRes, bookingsRes, servicesRes, hoursRes, blocksRes] = await Promise.all([
+            const [profileRes, bookingsRes, hoursRes, blocksRes] = await Promise.all([
                 fetch(`${API_BASE}/groomer-profiles`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`${API_BASE}/bookings`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`${API_BASE}/services`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`${API_BASE}/groomer-working-hours`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`${API_BASE}/groomer-time-blocks`, { headers: { Authorization: `Bearer ${token}` } }),
             ]);
@@ -323,17 +322,16 @@ export function GroomerDashboard() {
                 const data = await profileRes.json();
                 const p = Array.isArray(data) ? data[0] : data;
                 setProfile(p);
-            }
-            if (bookingsRes.ok) setBookings(await bookingsRes.json());
-            if (servicesRes.ok) {
-                const allServices = await servicesRes.json();
-                // filter to only this groomer's services — the public /services endpoint includes groomer_profile
-                if (profile?.id) {
-                    setServices(allServices.filter((s: any) => s.groomer_profile_id === profile.id || s.groomer_profile?.userId === user?.id));
-                } else {
-                    setServices(allServices);
+
+                if (p?.id) {
+                    const servicesRes = await fetch(
+                        `${API_BASE}/groomer-profiles/${p.id}/my-services`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    if (servicesRes.ok) setServices(await servicesRes.json());
                 }
             }
+            if (bookingsRes.ok) setBookings(await bookingsRes.json());
             if (hoursRes.ok) {
                 const hrs: WorkingHours[] = await hoursRes.json();
                 setWorkingHours(hrs);
@@ -355,15 +353,6 @@ export function GroomerDashboard() {
     }, [token]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
-
-    // Re-fetch services once profile is loaded (to filter correctly)
-    useEffect(() => {
-        if (!token || !profile?.id) return;
-        fetch(`${API_BASE}/services`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.json())
-            .then((all: any[]) => setServices(all.filter(s => s.groomer_profile_id === profile.id || s.groomer_profile?.userId === user?.id)))
-            .catch(() => {});
-    }, [profile?.id]);
 
     const now = new Date();
     const todayBookings = bookings.filter(b =>
