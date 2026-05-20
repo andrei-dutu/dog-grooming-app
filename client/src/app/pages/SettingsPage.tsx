@@ -48,20 +48,10 @@ export function SettingsPage({ userType }: SettingsPageProps) {
     const fetchProfile = async () => {
       setLoadingProfile(true);
       try {
-        let endpoint: string;
-
-        if (userType === 'customer') {
-          endpoint = `${API_BASE}/customer-profiles`;
-        } else {
-          // Pentru groomer, trebuie să obținem profilul din userId
-          // Mai întâi obținem user-ul curent cu /auth/me
-          // sau apelăm direct endpoint-ul care returnează profilul groomer-ului
-          // cel mai simplu: trebuie API care să returneze groomer profile de user curent
-
-          // Alternativ: facem query direct cu Prisma - dar asta nu e ideal
-          // Soluția: creezi un endpoint /groomer-profiles/me ca groomer-ul curent
-          endpoint = `${API_BASE}/groomer-profiles/me`;
-        }
+        const endpoint =
+            userType === 'customer'
+                ? `${API_BASE}/customer-profiles`
+                : `${API_BASE}/groomer-profiles`;
 
         const res = await fetch(endpoint, {
           headers: { Authorization: `Bearer ${token}` },
