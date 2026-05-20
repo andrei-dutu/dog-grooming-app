@@ -34,7 +34,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold mb-4">Hours</h4>
+            <h4 className="font-bold mb-4">Usual Opening Hours</h4>
             <div className="text-gray-400 flex flex-col gap-2">
               <p>Mon-Fri: 8am - 6pm</p>
               <p>Saturday: 9am - 5pm</p>
