@@ -16,9 +16,6 @@ router.get(
   asyncHandler(async (_req, res) => {
     // Include the linked user and their photo so clients can render avatars
     const groomers = await prisma.groomerProfile.findMany({
-      where: {
-        is_public: true,
-      },
       include: {
         // include the user's public fields and their photo (Media)
         user: {
