@@ -170,40 +170,20 @@ export function DogProfilePage() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Avatar placeholder */}
-              <div className="flex flex-col items-center mb-8">
-                <div className="relative">
-                  <div
-                      className="w-32 h-32 rounded-full border-4 border-dashed flex flex-col items-center justify-center"
-                      style={{
-                        borderColor: 'var(--color-primary)',
-                        backgroundColor: 'var(--color-primary-light)',
-                      }}
-                  >
-                    <Upload size={32} style={{ color: 'var(--color-primary)' }} />
-                    <span className="text-xs mt-2 font-bold" style={{ color: 'var(--color-primary)' }}>
-                    Add photo
-                  </span>
-                  </div>
-                  <button
-                      type="button"
-                      className="absolute bottom-0 right-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
-                      style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}
-                  >
-                    <Upload size={16} />
-                  </button>
-                </div>
-              </div>
-
               {/* Name */}
-              <Input
-                  label="Dog's Name"
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g., Biscuit"
-                  required
-              />
+              <div>
+                  <Input
+                      label="Dog's Name"
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="e.g., Biscuit"
+                      required
+                  />
+                  <div className="text-right text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                    {form.name.length} characters
+                  </div>
+              </div>
 
               {/* Breed */}
               <div>
@@ -227,6 +207,9 @@ export function DogProfilePage() {
                   <option value="Shih Tzu" />
                   <option value="Beagle" />
                 </datalist>
+                <div className="text-right text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  {form.breed.length} characters
+                </div>
               </div>
 
               {/* Weight */}

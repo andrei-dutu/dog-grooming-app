@@ -9,6 +9,7 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { SettingsPage } from './SettingsPage';
 import { useAuth } from '../hooks/AuthContext';
+import { truncateText } from '../components/ui/utils';
 
 const API_BASE = '/api';
 
@@ -92,6 +93,10 @@ function AppointmentCard({ apt, onCancel }: { apt: Booking; onCancel: () => void
     const isPast = new Date(apt.start_datetime) < new Date() || apt.cancelled || apt.status === 'CANCELLED';
     const temperaments = apt.dog.temperament?.split(',').map(t => t.trim()) ?? [];
 
+    // truncate name and breed for listing
+    const dogNameDisplay = truncateText(apt.dog.name, 21);
+    const breedDisplay = apt.dog.breed ? truncateText(apt.dog.breed, 18) : undefined;
+
     return (
         <Card className="flex-1 p-6 border-l-[5px]" style={{ borderLeftColor: isPast ? 'var(--color-border)' : 'var(--color-primary)' }}>
             <div className="flex items-start justify-between mb-4">
@@ -127,9 +132,9 @@ function AppointmentCard({ apt, onCancel }: { apt: Booking; onCancel: () => void
                         🐶
                     </div>
                     <div>
-                        <div className="font-extrabold mb-1">{apt.dog.name}</div>
+                        <div className="font-extrabold mb-1">{dogNameDisplay}</div>
                         <div className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                            {[apt.dog.breed, apt.dog.weight_kg ? `${apt.dog.weight_kg} kg` : null].filter(Boolean).join(' · ')}
+                            {[breedDisplay, apt.dog.weight_kg ? `${apt.dog.weight_kg} kg` : null].filter(Boolean).join(' · ')}
                         </div>
                         <div className="flex gap-1 flex-wrap">
                             {temperaments.map(t => (
@@ -626,7 +631,7 @@ export function GroomerDashboard() {
                                                     <div className="font-bold">{formatDate(b.start_datetime)}</div>
                                                     <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{formatTime(b.start_datetime)}</div>
                                                 </td>
-                                                <td className="p-4 font-bold">{b.dog.name}{b.dog.breed ? ` · ${b.dog.breed}` : ''}</td>
+                                                <td className="p-4 font-bold">{truncateText(b.dog.name, 21)}{b.dog.breed ? ` · ${truncateText(b.dog.breed, 18)}` : ''}</td>
                                                 <td className="p-4">{b.customer_profile.first_name} {b.customer_profile.last_name}</td>
                                                 <td className="p-4">{b.service.name} · <span style={{ color: 'var(--color-primary)' }}>${b.service.price}</span></td>
                                                 <td className="p-4">
@@ -848,7 +853,7 @@ export function GroomerDashboard() {
                             if (!apt) return null;
                             return (
                                 <div className="mb-4 p-4 rounded-xl" style={{ backgroundColor: 'var(--color-primary-light)' }}>
-                                    <div className="font-bold">{apt.dog.name} · {apt.service.name}</div>
+                                    <div className="font-bold">{truncateText(apt.dog.name, 21)} · {apt.service.name}</div>
                                     <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                         {formatDate(apt.start_datetime)} at {formatTime(apt.start_datetime)}
                                     </div>
@@ -914,3 +919,6 @@ export function GroomerDashboard() {
         </div>
     );
 }
+
+// (truncateText is imported from ui utils)
+

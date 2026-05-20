@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, Search, Calendar, Users, Building, Settings, LogOut, Plus, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { truncateText } from '../components/ui/utils';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { ImageWithFallback } from '../components/ImageWithFallback';
@@ -367,7 +368,7 @@ export function AdminPanel() {
                                         .map(b => (
                                             <tr key={b.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-primary-light)] transition-colors">
                                                 <td className="p-4 font-bold">{b.customer_profile?.first_name} {b.customer_profile?.last_name}</td>
-                                                <td className="p-4">{b.dog.name}</td>
+                                                <td className="p-4">{truncateText(b.dog.name, 21)}</td>
                                                 <td className="p-4">{b.groomer_profile.display_name}</td>
                                                 <td className="p-4">{b.service.name} · <span style={{ color: 'var(--color-primary)' }}>${b.service.price}</span></td>
                                                 <td className="p-4 text-sm">{formatDate(b.start_datetime)}<br />{formatTime(b.start_datetime)}</td>
@@ -477,7 +478,7 @@ export function AdminPanel() {
                                         .map(b => (
                                             <tr key={b.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-primary-light)] transition-colors">
                                                 <td className="p-4 font-bold">{b.customer_profile?.first_name} {b.customer_profile?.last_name}</td>
-                                                <td className="p-4">{b.dog.name}</td>
+                                                <td className="p-4">{truncateText(b.dog.name, 21)}</td>
                                                 <td className="p-4">{b.groomer_profile.display_name}</td>
                                                 <td className="p-4">{b.service.name} · <span style={{ color: 'var(--color-primary)' }}>${b.service.price}</span></td>
                                                 <td className="p-4 text-sm">{formatDate(b.start_datetime)}<br />{formatTime(b.start_datetime)}</td>
