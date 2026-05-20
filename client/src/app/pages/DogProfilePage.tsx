@@ -185,6 +185,7 @@ export function DogProfilePage() {
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder="e.g., Biscuit"
                       required
+                      className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                   <div className="text-right text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                     {form.name.length} characters
