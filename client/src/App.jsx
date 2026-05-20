@@ -7,11 +7,14 @@ import { AboutPage } from './app/pages/AboutPage.tsx';
 import { GalleryPage } from './app/pages/GalleryPage.tsx';
 import { SignUpPage } from './app/pages/SignUpPage.tsx';
 import { LoginPage } from './app/pages/LoginPage.tsx';
+import { GroomerListingPage } from './app/pages/GroomerListingPage.tsx';
+import { GroomerPublicProfile } from './app/pages/GroomerPublicProfile.tsx';
 
 // Protected Pages
 import { CustomerDashboard } from './app/pages/CustomerDashboard.tsx';
 import { DogProfilePage } from './app/pages/DogProfilePage.tsx';
 import { BookingFlow } from './app/pages/BookingFlow.tsx';
+import { GroomerDashboard } from './app/pages/GroomerDashboard.tsx';
 
 // Placeholder for pages not yet built
 function ComingSoon({ page }) {
@@ -38,7 +41,7 @@ function ComingSoon({ page }) {
 /** Redirects unauthenticated users to /login */
 function ProtectedRoute({ children }) {
     const { isAuthenticated, loading } = useAuth();
-    if (loading) return null; // or a spinner
+    if (loading) return null;
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     return <>{children}</>;
 }
@@ -49,6 +52,15 @@ function ClientRoute({ children }) {
     if (loading) return null;
     if (!user) return <Navigate to="/login" replace />;
     if (user.role !== 'CLIENT') return <Navigate to="/dashboard/groomer" replace />;
+    return <>{children}</>;
+}
+
+/** Redirects non-GROOMER users away from groomer-specific routes */
+function GroomerRoute({ children }) {
+    const { user, loading } = useAuth();
+    if (loading) return null;
+    if (!user) return <Navigate to="/login" replace />;
+    if (user.role !== 'GROOMER' && user.role !== 'ADMIN') return <Navigate to="/dashboard/customer" replace />;
     return <>{children}</>;
 }
 
@@ -64,8 +76,10 @@ export default function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
 
-                    <Route path="/groomers" element={<ComingSoon page="Groomer Listing" />} />
-                    <Route path="/groomers/:id" element={<ComingSoon page="Groomer Profile" />} />
+                    {/* ── Groomer Discovery (public) ── */}
+                    <Route path="/groomers" element={<GroomerListingPage />} />
+                    <Route path="/groomers/:id" element={<GroomerPublicProfile />} />
+
                     <Route path="/services" element={<ComingSoon page="Services" />} />
                     <Route path="/reviews" element={<ComingSoon page="Reviews" />} />
                     <Route path="/contact" element={<ComingSoon page="Contact" />} />
@@ -118,8 +132,19 @@ export default function App() {
                         }
                     />
 
-                    {/* ── Pending Admin/Groomer Dashboards ── */}
-                    <Route path="/dashboard/groomer" element={<ComingSoon page="Groomer Dashboard" />} />
+                    {/* ── Groomer Dashboard ── */}
+                    <Route
+                        path="/dashboard/groomer"
+                        element={
+                            <ProtectedRoute>
+                                <GroomerRoute>
+                                    <GroomerDashboard />
+                                </GroomerRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* ── Admin ── */}
                     <Route path="/admin" element={<ComingSoon page="Admin Panel" />} />
                     <Route path="/settings" element={<ComingSoon page="Settings" />} />
 

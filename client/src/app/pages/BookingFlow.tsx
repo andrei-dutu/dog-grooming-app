@@ -183,9 +183,9 @@ export function BookingFlow() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          groomer_profile_id: groomerId,
-          service_id: selectedServiceId,
-          dog_id: selectedDogId,
+          groomerProfileId: groomerId,
+          serviceId: selectedServiceId,
+          dogId: selectedDogId,
           start_datetime: toISO(startDatetime),
           end_datetime: toISO(endDatetime),
         }),
