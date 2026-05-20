@@ -151,3 +151,14 @@ export async function requireCustomerProfileOwnership(req, _res, next) {
   next();
 }
 
+export async function requireUserOwnership(req, _res, next) {
+  if (req.user.role === "ADMIN") return next();
+
+  const userId = Number(req.params.id);
+
+  if (req.user.id !== userId) {
+    return next(new HttpError(403, "Forbidden"));
+  }
+
+  next();
+}

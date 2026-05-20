@@ -37,7 +37,6 @@ npm run dev
 ```
 
 Opens at **http://localhost:5173**
- 
 6. From now on, if you make changes to the database through prisma and want to push them you have to sync both databases so use: `npm run db:push:local` and `npm run db:push:prod`
 
 ## .env setup
