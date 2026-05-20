@@ -114,4 +114,27 @@ export const authService = {
   
     return { token, user };
   },
+
+  async changePassword(userId, { currentPassword, newPassword }) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      throw new HttpError(401, "Current password is incorrect");
+    }
+
+    await userRepository.update(userId, { password: newPassword });
+  },
+
+  async deleteAccount(userId) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    await userRepository.delete(userId);
+  },
 };

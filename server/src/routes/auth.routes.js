@@ -26,5 +26,7 @@ router.get(
       res.json({ message: "Admin access granted" });
     }
   );
+router.put("/change-password", authenticate, asyncHandler(authController.changePassword));
+router.delete("/delete-account", authenticate, asyncHandler(authController.deleteAccount));
 
 export default router;
