@@ -226,37 +226,6 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Reviews */}
-        <section className="py-20 px-6" style={{ backgroundColor: 'var(--color-primary-light)' }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <Badge variant="primary" className="mb-4">200+ Happy Pups</Badge>
-              <h2 className="font-extrabold" style={{ fontSize: 'clamp(24px, 5vw, 32px)', fontFamily: 'var(--font-heading)' }}>
-                Paw-Some Reviews
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { name: 'Jessica M.', text: 'My anxious rescue finally loves grooming day! Sarah is amazing.', bg: '#FDE8F3' },
-                { name: 'Tom R.', text: 'Best grooming experience ever. Mike is so patient with my golden retriever.', bg: '#BEF264' },
-                { name: 'Linda K.', text: 'Emma transformed my doodle into a cloud. Will definitely come back!', bg: '#E9D5FF' }
-              ].map((review, i) => (
-                  <Card key={i} className="p-6" style={{ backgroundColor: review.bg }}>
-                    <div className="flex mb-3">
-                      {[1, 2, 3, 4, 5].map(j => (
-                          <Star key={j} size={16} fill="var(--color-warning)" stroke="var(--color-warning)" />
-                      ))}
-                    </div>
-                    <p className="italic mb-4">"{review.text}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white" />
-                      <span className="font-bold">{review.name}</span>
-                    </div>
-                  </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* CTA Banner */}
         <section className="py-20 px-6 relative overflow-hidden" style={{ backgroundColor: 'var(--color-primary)' }}>

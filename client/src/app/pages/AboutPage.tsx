@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Heart, Shield, Star, Users } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
@@ -14,14 +15,23 @@ const values = [
   { icon: <Users size={32} />, label: "You're Family", desc: 'We treat every dog like our own' }
 ];
 
-const groomers = [
-  { name: 'Sarah Johnson', specialty: 'Anxious Dogs', rating: 4.9, img: 'https://i.pravatar.cc/150?img=1' },
-  { name: 'Mike Chen', specialty: 'Large Breeds', rating: 5.0, img: 'https://i.pravatar.cc/150?img=13' },
-  { name: 'Emma Davis', specialty: 'Doodles', rating: 4.8, img: 'https://i.pravatar.cc/150?img=5' }
-];
-
 export function AboutPage() {
   const navigate = useNavigate();
+  const [groomers, setGroomers] = useState<any[]>([]);
+  const [loadingGroomers, setLoadingGroomers] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/groomer-profiles')
+      .then((res) => res.json())
+      .then((data) => {
+        setGroomers(Array.isArray(data) ? data.slice(0, 3) : []);
+        setLoadingGroomers(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch groomers:', err);
+        setLoadingGroomers(false);
+      });
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-surface)' }}>
@@ -114,30 +124,44 @@ export function AboutPage() {
       <section className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-center font-extrabold mb-12" style={{ fontSize: '32px', fontFamily: 'var(--font-heading)' }}>
-            The Hands Behind Every Groom
+            The hands behind every groom
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {groomers.map((groomer, i) => (
-              <Card key={i} className="p-6 text-center" hover>
-                <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white shadow-lg">
-                  <ImageWithFallback
-                    src={groomer.img}
-                    alt={groomer.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="font-extrabold mb-1">{groomer.name}</h3>
-                <Badge variant="primary" className="text-xs mb-3">{groomer.specialty}</Badge>
-                <div className="flex justify-center items-center gap-1 mb-4">
-                  <Star size={16} fill="var(--color-warning)" stroke="var(--color-warning)" />
-                  <span className="font-bold">{groomer.rating}</span>
-                </div>
-                <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/groomers')}>
-                  View Profile
-                </Button>
-              </Card>
-            ))}
-          </div>
+          {loadingGroomers ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                    <Card key={i} className="p-6 text-center animate-pulse">
+                      <div className="w-32 h-32 rounded-full mx-auto mb-4 bg-gray-200" />
+                      <div className="h-4 bg-gray-200 rounded mx-auto w-32 mb-2" />
+                      <div className="h-3 bg-gray-200 rounded mx-auto w-20" />
+                    </Card>
+                ))}
+              </div>
+          ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {groomers.map((groomer: any) => {
+                  const avatarUrl =
+                      groomer.user?.photo?.url || groomer.avatar_url || 'https://via.placeholder.com/150';
+                  const name = groomer.display_name || groomer.user?.email || 'Groomer';
+
+                  return (
+                      <Card key={groomer.id} className="p-6 text-center" hover>
+                        <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white shadow-lg">
+                          <ImageWithFallback
+                              src={avatarUrl}
+                              alt={name}
+                              className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <h3 className="font-extrabold mb-1">{name}</h3>
+                        <Badge variant="primary" className="text-xs mb-3">{groomer.specialties}</Badge>
+                        <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/groomers')}>
+                          View Profile
+                        </Button>
+                      </Card>
+                  );
+                })}
+              </div>
+          )}
         </div>
       </section>
 

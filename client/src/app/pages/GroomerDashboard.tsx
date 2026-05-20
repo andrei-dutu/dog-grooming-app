@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import {
     Calendar, Clock, Users, Settings, LogOut, Phone,
-    AlertCircle, Scissors, Home, Plus, Pencil, Trash2, Eye, EyeOff, X, Check
+    AlertCircle, Scissors, Home, Plus, Pencil, Trash2, X
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { SettingsPage } from './SettingsPage';
 import { useAuth } from '../hooks/AuthContext';
+import { truncateText } from '../components/ui/utils';
 
 const API_BASE = '/api';
 
@@ -92,6 +93,10 @@ function AppointmentCard({ apt, onCancel }: { apt: Booking; onCancel: () => void
     const isPast = new Date(apt.start_datetime) < new Date() || apt.cancelled || apt.status === 'CANCELLED';
     const temperaments = apt.dog.temperament?.split(',').map(t => t.trim()) ?? [];
 
+    // truncate name and breed for listing
+    const dogNameDisplay = truncateText(apt.dog.name, 21);
+    const breedDisplay = apt.dog.breed ? truncateText(apt.dog.breed, 18) : undefined;
+
     return (
         <Card className="flex-1 p-6 border-l-[5px]" style={{ borderLeftColor: isPast ? 'var(--color-border)' : 'var(--color-primary)' }}>
             <div className="flex items-start justify-between mb-4">
@@ -127,9 +132,9 @@ function AppointmentCard({ apt, onCancel }: { apt: Booking; onCancel: () => void
                         🐶
                     </div>
                     <div>
-                        <div className="font-extrabold mb-1">{apt.dog.name}</div>
+                        <div className="font-extrabold mb-1">{dogNameDisplay}</div>
                         <div className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                            {[apt.dog.breed, apt.dog.weight_kg ? `${apt.dog.weight_kg} kg` : null].filter(Boolean).join(' · ')}
+                            {[breedDisplay, apt.dog.weight_kg ? `${apt.dog.weight_kg} kg` : null].filter(Boolean).join(' · ')}
                         </div>
                         <div className="flex gap-1 flex-wrap">
                             {temperaments.map(t => (
@@ -271,7 +276,6 @@ function ServiceFormModal({ service, onSave, onClose, saving }: ServiceFormProps
 type Tab = 'today' | 'bookings' | 'services' | 'availability' | 'settings';
 
 export function GroomerDashboard() {
-    const navigate = useNavigate();
     const { token, user, logout } = useAuth();
 
     const [activeTab, setActiveTab] = useState<Tab>('today');
@@ -306,10 +310,9 @@ export function GroomerDashboard() {
         if (!token) return;
         setLoading(true);
         try {
-            const [profileRes, bookingsRes, servicesRes, hoursRes, blocksRes] = await Promise.all([
+            const [profileRes, bookingsRes, hoursRes, blocksRes] = await Promise.all([
                 fetch(`${API_BASE}/groomer-profiles`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`${API_BASE}/bookings`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`${API_BASE}/services`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`${API_BASE}/groomer-working-hours`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`${API_BASE}/groomer-time-blocks`, { headers: { Authorization: `Bearer ${token}` } }),
             ]);
@@ -318,17 +321,16 @@ export function GroomerDashboard() {
                 const data = await profileRes.json();
                 const p = Array.isArray(data) ? data[0] : data;
                 setProfile(p);
-            }
-            if (bookingsRes.ok) setBookings(await bookingsRes.json());
-            if (servicesRes.ok) {
-                const allServices = await servicesRes.json();
-                // filter to only this groomer's services — the public /services endpoint includes groomer_profile
-                if (profile?.id) {
-                    setServices(allServices.filter((s: any) => s.groomer_profile_id === profile.id || s.groomer_profile?.userId === user?.id));
-                } else {
-                    setServices(allServices);
+
+                if (p?.id) {
+                    const servicesRes = await fetch(
+                        `${API_BASE}/groomer-profiles/${p.id}/my-services`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    if (servicesRes.ok) setServices(await servicesRes.json());
                 }
             }
+            if (bookingsRes.ok) setBookings(await bookingsRes.json());
             if (hoursRes.ok) {
                 const hrs: WorkingHours[] = await hoursRes.json();
                 setWorkingHours(hrs);
@@ -350,15 +352,6 @@ export function GroomerDashboard() {
     }, [token]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
-
-    // Re-fetch services once profile is loaded (to filter correctly)
-    useEffect(() => {
-        if (!token || !profile?.id) return;
-        fetch(`${API_BASE}/services`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.json())
-            .then((all: any[]) => setServices(all.filter(s => s.groomer_profile_id === profile.id || s.groomer_profile?.userId === user?.id)))
-            .catch(() => {});
-    }, [profile?.id]);
 
     const now = new Date();
     const todayBookings = bookings.filter(b =>
@@ -505,9 +498,14 @@ export function GroomerDashboard() {
             {/* ── Sidebar ── */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
                 <div className="p-6 border-b border-[var(--color-border)]">
-                    <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
+                    <Link
+                        to="/"
+                        className="text-2xl font-extrabold mb-1 text-left hover:opacity-80 transition-opacity"
+                        style={{ fontFamily: 'var(--font-display)' }}
+                        aria-label="Go to home"
+                    >
                         Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-                    </div>
+                    </Link>
                     <div className="text-xs font-bold mt-1" style={{ color: 'var(--color-text-secondary)' }}>Groomer Portal</div>
                 </div>
 
@@ -626,7 +624,7 @@ export function GroomerDashboard() {
                                                     <div className="font-bold">{formatDate(b.start_datetime)}</div>
                                                     <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{formatTime(b.start_datetime)}</div>
                                                 </td>
-                                                <td className="p-4 font-bold">{b.dog.name}{b.dog.breed ? ` · ${b.dog.breed}` : ''}</td>
+                                                <td className="p-4 font-bold">{truncateText(b.dog.name, 21)}{b.dog.breed ? ` · ${truncateText(b.dog.breed, 18)}` : ''}</td>
                                                 <td className="p-4">{b.customer_profile.first_name} {b.customer_profile.last_name}</td>
                                                 <td className="p-4">{b.service.name} · <span style={{ color: 'var(--color-primary)' }}>${b.service.price}</span></td>
                                                 <td className="p-4">
@@ -848,7 +846,7 @@ export function GroomerDashboard() {
                             if (!apt) return null;
                             return (
                                 <div className="mb-4 p-4 rounded-xl" style={{ backgroundColor: 'var(--color-primary-light)' }}>
-                                    <div className="font-bold">{apt.dog.name} · {apt.service.name}</div>
+                                    <div className="font-bold">{truncateText(apt.dog.name, 21)} · {apt.service.name}</div>
                                     <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                         {formatDate(apt.start_datetime)} at {formatTime(apt.start_datetime)}
                                     </div>
@@ -914,3 +912,6 @@ export function GroomerDashboard() {
         </div>
     );
 }
+
+// (truncateText is imported from ui utils)
+
