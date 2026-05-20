@@ -11,6 +11,7 @@ import groomerWorkingHoursRoutes from "./groomerWorkingHours.routes.js";
 import groomerTimeBlockRoutes from "./groomerTimeBlock.routes.js";
 import groomerProfileRoutes from "./groomerProfile.routes.js";
 import customerProfileRoutes from "./customerProfile.routes.js";
+import userSelfRoutes from "./userSelf.routes.js";
 
 import {
   userRepository,
@@ -28,6 +29,9 @@ import authRoutes from "./auth.routes.js";
 
 
 const router = Router();
+
+router.use("/users", userSelfRoutes);
+
 router.use("/users", authenticate, authorize("ADMIN"), createCrudRouter(userRepository));
 
 router.use("/customer-profiles", customerProfileRoutes);

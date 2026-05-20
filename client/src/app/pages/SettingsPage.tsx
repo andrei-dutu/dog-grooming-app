@@ -149,13 +149,16 @@ export function SettingsPage({ userType }: SettingsPageProps) {
 
       // Update to new password via users endpoint (ADMIN-only in normal CRUD,
       // but we're authenticated and this passes through beforeUpdate → hashPasswordIfPresent)
-      const res = await fetch(`${API_BASE}/users/${user?.id}`, {
-        method: 'PUT',
+      const res = await fetch(`${API_BASE}/users/me/password`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ password: passwordData.new }),
+        body: JSON.stringify({
+          currentPassword: passwordData.current,
+          newPassword: passwordData.new,
+        }),
       });
 
       if (!res.ok) {
@@ -180,7 +183,7 @@ export function SettingsPage({ userType }: SettingsPageProps) {
     setDeleteError('');
 
     try {
-      const res = await fetch(`${API_BASE}/users/${user.id}`, {
+      const res = await fetch(`${API_BASE}/users/me`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
