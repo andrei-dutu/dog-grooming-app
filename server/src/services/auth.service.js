@@ -50,57 +50,36 @@ export const authService = {
     return user;
   },
 
-  async groomerRegister({ token, password, displayName, bio, credentials, specialties }) {
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      throw new HttpError(401, "Invalid or expired invitation token");
-    }
-
-    const email = normalizeEmail(decoded.email);
-
-    if (!isValidEmail(email)) {
-      throw new HttpError(400, "Invalid email in invitation token");
-    }
-    
-    const existing = await userRepository.findByEmail(email);
-    if (existing) {
-      throw new HttpError(409, "This email is already registered");
-    }
-  
-    const user = await userRepository.create({
-      email,
-      password,
-      role: "GROOMER",
-      status: "ACTIVE",
-    });
-  
-    await groomerProfileRepository.create({
-      userId: user.id,
-      display_name: displayName,
-      bio: bio || null,
-      credentials: credentials || null,
-      specialties: specialties || null,
-      is_public: false,
-    });
-  
-    return user;
-  },
-
-  generateGroomerInvitationToken(rawEmail) {
+  async createGroomer({ email: rawEmail, password, displayName, bio, specialties, credentials }) {
     const email = normalizeEmail(rawEmail);
 
     if (!isValidEmail(email)) {
       throw new HttpError(400, "Invalid email format");
     }
 
-    return jwt.sign(
-      { email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-},
+    const existing = await userRepository.findByEmail(email);
+    if (existing) {
+      throw new HttpError(409, "Email already in use");
+    }
+
+    const user = await userRepository.create({
+      email,
+      password,
+      role: "GROOMER",
+      status: "ACTIVE",
+    });
+
+    await groomerProfileRepository.create({
+      userId: user.id,
+      display_name: displayName || email.split("@")[0],
+      bio: bio || null,
+      credentials: credentials || null,
+      specialties: specialties || null,
+      is_public: false,
+    });
+
+    return user;
+  },
 
   async login({ email: rawEmail, password }) {
     const email = normalizeEmail(rawEmail);

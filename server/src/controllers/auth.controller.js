@@ -14,23 +14,8 @@ export const authController = {
   },
 
   async inviteGroomer(req, res) {
-    const email = normalizeEmail(req.body.email);
-
-    if (!isValidEmail(email)) {
-      throw new HttpError(400, "Invalid email format");
-    }
-
-    const invitationToken = authService.generateGroomerInvitationToken(email);
-    const inviteLink = `${process.env.FRONTEND_URL}/groomer-signup?token=${invitationToken}`;
-
-    // TODO: Trimite email (implementa serviciu email)
-    console.log(`Invitation for ${email}: ${inviteLink}`);
-
-    res.status(200).json({
-      message: "Invitation generated successfully",
-      email,
-      inviteLink, // Șterge în producție
-    });
+    const user = await authService.createGroomer(req.body);
+    res.status(201).json(user);
   },
   
   async login(req, res) {
