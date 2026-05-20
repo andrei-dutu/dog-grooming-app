@@ -48,7 +48,7 @@ export function HomePage() {
                 Professional grooming services with certified, dog-obsessed groomers. No double bookings, instant confirmation, and a tail-wagging experience every time.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button variant="primary" size="lg" onClick={() => navigate('/booking')}>
+                <Button variant="primary" size="lg" onClick={() => navigate('/groomers')}>
                   Book an Appointment
                 </Button>
                 <Button variant="ghost" size="lg" onClick={() => navigate('/groomers')}>
