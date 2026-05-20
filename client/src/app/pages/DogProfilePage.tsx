@@ -87,7 +87,7 @@ export function DogProfilePage() {
       name: form.name,
       breed: form.breed || undefined,
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : undefined,
-      temperament: form.temperament.length > 0 ? form.temperament.join(', ') : undefined,
+      temperament: form.temperament.length > 0 ? form.temperament.join(', ') : null,
       notes: form.notes || undefined,
     };
 
