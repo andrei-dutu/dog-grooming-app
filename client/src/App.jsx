@@ -15,6 +15,9 @@ import { CustomerDashboard } from './app/pages/CustomerDashboard.tsx';
 import { DogProfilePage } from './app/pages/DogProfilePage.tsx';
 import { BookingFlow } from './app/pages/BookingFlow.tsx';
 import { GroomerDashboard } from './app/pages/GroomerDashboard.tsx';
+import { AdminPanel } from './app/pages/AdminPanel.tsx';
+import {Settings} from "lucide-react";
+
 
 // Placeholder for pages not yet built
 function ComingSoon({ page }) {
@@ -145,8 +148,12 @@ export default function App() {
                     />
 
                     {/* ── Admin ── */}
-                    <Route path="/admin" element={<ComingSoon page="Admin Panel" />} />
-                    <Route path="/settings" element={<ComingSoon page="Settings" />} />
+                    <Route path="/dashboard/admin" element={
+                            <ProtectedRoute>
+                                <AdminPanel />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* ── Fallback ── */}
                     <Route path="*" element={<Navigate to="/" replace />} />
