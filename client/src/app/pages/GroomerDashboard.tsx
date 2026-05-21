@@ -512,9 +512,14 @@ export function GroomerDashboard() {
             {/* ── Sidebar ── */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
                 <div className="p-6 border-b border-[var(--color-border)]">
-                    <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="text-2xl font-extrabold text-left hover:opacity-80 transition-opacity"
+                        style={{ fontFamily: 'var(--font-display)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
                         Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-                    </div>
+                    </button>
+
                     <div className="text-xs font-bold mt-1" style={{ color: 'var(--color-text-secondary)' }}>Groomer Portal</div>
                 </div>
 
