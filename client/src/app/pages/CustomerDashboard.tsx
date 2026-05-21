@@ -250,9 +250,14 @@ export function CustomerDashboard() {
         {/* ── Sidebar (Desktop) ── */}
         <aside className="hidden md:flex w-64 bg-white border-r border-[var(--color-border)] flex-col sticky top-0 h-screen">
           <div className="p-6 border-b border-[var(--color-border)]">
-            <div className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
+            <button
+                onClick={() => navigate('/')}
+                className="text-2xl font-extrabold text-left hover:opacity-80 transition-opacity"
+                style={{ fontFamily: 'var(--font-display)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
               Paw<span style={{ color: 'var(--color-primary)' }}>🐾</span>Book
-            </div>
+            </button>
+
           </div>
 
           <nav className="flex-1 p-4 overflow-y-auto">
